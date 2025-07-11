@@ -1,4 +1,4 @@
-package com.fatrobin
+package app.pmsoft.fatrobin
 
 import kotlin.test.*
 

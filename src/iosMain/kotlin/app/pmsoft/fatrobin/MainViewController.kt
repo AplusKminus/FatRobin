@@ -1,4 +1,4 @@
-package com.fatrobin
+package app.pmsoft.fatrobin
 
 import androidx.compose.ui.window.ComposeUIViewController
 import platform.UIKit.UIViewController

@@ -1,4 +1,4 @@
-package com.fatrobin.ui
+package app.pmsoft.fatrobin.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

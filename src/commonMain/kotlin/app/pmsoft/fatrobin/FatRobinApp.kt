@@ -1,4 +1,4 @@
-package com.fatrobin
+package app.pmsoft.fatrobin
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -16,8 +16,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fatrobin.ui.MultipleChoiceButtonGroup
-import com.fatrobin.ui.MultipleChoiceButtonOption
+import app.pmsoft.fatrobin.ui.MultipleChoiceButtonGroup
+import app.pmsoft.fatrobin.ui.MultipleChoiceButtonOption
 
 enum class PortionMode {
     BY_WEIGHT, BY_COUNT

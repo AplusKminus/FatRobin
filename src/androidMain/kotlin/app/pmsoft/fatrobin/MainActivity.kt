@@ -1,4 +1,4 @@
-package com.fatrobin
+package app.pmsoft.fatrobin
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

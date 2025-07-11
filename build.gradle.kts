@@ -39,7 +39,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.fatrobin"
+    namespace = "app.pmsoft.fatrobin"
     compileSdk = 34
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
@@ -47,7 +47,7 @@ android {
     sourceSets["main"].resources.srcDirs("src/commonMain/resources")
 
     defaultConfig {
-        applicationId = "com.fatrobin"
+        applicationId = "app.pmsoft.fatrobin"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
