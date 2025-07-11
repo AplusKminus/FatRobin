@@ -1,12 +1,18 @@
 package com.fatrobin
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -17,29 +23,55 @@ fun FatRobinApp() {
     var fatPer100g by remember { mutableStateOf("") }
     var totalPackageWeight by remember { mutableStateOf("") }
     var portionWeight by remember { mutableStateOf("") }
-    var calculation by remember { mutableStateOf<PillCalculation?>(null) }
-    var errorMessage by remember { mutableStateOf("") }
     
     val calculator = remember { FatRobinCalculator() }
+    val focusManager = LocalFocusManager.current
+    val firstFieldFocusRequester = remember { FocusRequester() }
     
-    fun calculatePills() {
-        try {
-            val fat = fatPer100g.toDoubleOrNull()
-            val totalWeight = totalPackageWeight.toDoubleOrNull()
-            val portion = portionWeight.toDoubleOrNull()
-            
-            if (fat == null || totalWeight == null || portion == null) {
-                errorMessage = "Please enter valid numbers for all fields"
-                calculation = null
-                return
-            }
-            
-            calculation = calculator.calculatePillsNeeded(fat, totalWeight, portion)
-            errorMessage = ""
-        } catch (e: Exception) {
-            errorMessage = e.message ?: "An error occurred"
-            calculation = null
+    fun filterNumericInput(input: String): String {
+        return input.filter { char ->
+            char.isDigit() || char == '.' || char == ',' || char == '-'
         }
+    }
+    
+    val fat = fatPer100g.toDoubleOrNull()
+    val totalWeight = totalPackageWeight.toDoubleOrNull()
+    val portion = portionWeight.toDoubleOrNull()
+    
+    val calculation = remember(fat, totalWeight, portion) {
+        try {
+            if (fat != null && totalWeight != null && portion != null) {
+                calculator.calculatePillsNeeded(fat, totalWeight, portion)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    val errorMessage = remember(fat, totalWeight, portion, calculation) {
+        when {
+            fat == null && fatPer100g.isNotEmpty() -> "Please enter a valid number for fat per 100g"
+            totalWeight == null && totalPackageWeight.isNotEmpty() -> "Please enter a valid number for total package weight"
+            portion == null && portionWeight.isNotEmpty() -> "Please enter a valid number for portion weight"
+            fat != null && totalWeight != null && portion != null && calculation == null -> "Invalid input values"
+            fat == null || totalWeight == null || portion == null -> {
+                val missing = mutableListOf<String>()
+                if (fat == null) missing.add("fat per 100g")
+                if (totalWeight == null) missing.add("total package weight")
+                if (portion == null) missing.add("portion weight")
+                "Please enter: ${missing.joinToString(", ")}"
+            }
+            else -> ""
+        }
+    }
+    
+    fun clearAll() {
+        fatPer100g = ""
+        totalPackageWeight = ""
+        portionWeight = ""
+        firstFieldFocusRequester.requestFocus()
     }
     
     MaterialTheme {
@@ -61,36 +93,57 @@ fun FatRobinApp() {
                     color = MaterialTheme.colorScheme.primary
                 )
                 
+                Button(
+                    onClick = { clearAll() },
+                    enabled = fatPer100g.isNotEmpty() || totalPackageWeight.isNotEmpty() || portionWeight.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Clear")
+                }
+                
                 OutlinedTextField(
                     value = fatPer100g,
-                    onValueChange = { fatPer100g = it },
+                    onValueChange = { fatPer100g = filterNumericInput(it) },
                     label = { Text("Fat per 100g") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(firstFieldFocusRequester)
                 )
                 
                 OutlinedTextField(
                     value = totalPackageWeight,
-                    onValueChange = { totalPackageWeight = it },
+                    onValueChange = { totalPackageWeight = filterNumericInput(it) },
                     label = { Text("Total package weight (g)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
                 
                 OutlinedTextField(
                     value = portionWeight,
-                    onValueChange = { portionWeight = it },
+                    onValueChange = { portionWeight = filterNumericInput(it) },
                     label = { Text("Portion weight (g)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
-                
-                Button(
-                    onClick = { calculatePills() },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Calculate Pills")
-                }
                 
                 if (errorMessage.isNotEmpty()) {
                     Text(
