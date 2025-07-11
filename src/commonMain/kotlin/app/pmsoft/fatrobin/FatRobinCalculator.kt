@@ -35,8 +35,8 @@ class FatRobinCalculator {
         val pills10k = ceil(unitsNeeded / UNITS_10K_PILL).toInt()
         val pills35k = ceil(unitsNeeded / UNITS_35K_PILL).toInt()
         
-        val gramsFor10k = floor(UNITS_10K_PILL / UNITS_PER_GRAM_FAT)
-        val gramsFor35k = floor(UNITS_35K_PILL / UNITS_PER_GRAM_FAT)
+        val gramsFor10k = floor((UNITS_10K_PILL / UNITS_PER_GRAM_FAT) / (fatPer100g / 100.0))
+        val gramsFor35k = floor((UNITS_35K_PILL / UNITS_PER_GRAM_FAT) / (fatPer100g / 100.0))
         
         // Calculate pills needed for entire package
         val fatInPackage = (fatPer100g / 100.0) * totalPackageWeight

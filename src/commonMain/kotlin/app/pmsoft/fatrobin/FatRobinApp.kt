@@ -250,8 +250,8 @@ fun FatRobinApp() {
                                 fontWeight = FontWeight.Bold
                             )
                             
-                            Text("10k pill covers: ${calc.gramsFor10k}g fat")
-                            Text("35k pill covers: ${calc.gramsFor35k}g fat")
+                            Text("10k pill covers: ${calc.gramsFor10k}g of product")
+                            Text("35k pill covers: ${calc.gramsFor35k}g of product")
                         }
                     }
                 }
