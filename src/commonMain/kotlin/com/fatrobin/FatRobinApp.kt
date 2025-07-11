@@ -16,6 +16,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fatrobin.ui.MultipleChoiceButtonGroup
+import com.fatrobin.ui.MultipleChoiceButtonOption
+
+enum class PortionMode {
+    BY_WEIGHT, BY_COUNT
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +29,8 @@ fun FatRobinApp() {
     var fatPer100g by remember { mutableStateOf("") }
     var totalPackageWeight by remember { mutableStateOf("") }
     var portionWeight by remember { mutableStateOf("") }
+    var totalPortions by remember { mutableStateOf("") }
+    var portionMode by remember { mutableStateOf(PortionMode.BY_WEIGHT) }
     
     val calculator = remember { FatRobinCalculator() }
     val focusManager = LocalFocusManager.current
@@ -37,11 +45,24 @@ fun FatRobinApp() {
     val fat = fatPer100g.toDoubleOrNull()
     val totalWeight = totalPackageWeight.toDoubleOrNull()
     val portion = portionWeight.toDoubleOrNull()
+    val totalPrt = totalPortions.toDoubleOrNull()
     
-    val calculation = remember(fat, totalWeight, portion) {
+    val calculation = remember(fat, totalWeight, portion, totalPrt, portionMode) {
         try {
-            if (fat != null && totalWeight != null && portion != null) {
-                calculator.calculatePillsNeeded(fat, totalWeight, portion)
+            if (fat != null) {
+                when (portionMode) {
+                    PortionMode.BY_WEIGHT -> {
+                        if (portion != null) {
+                            // For by weight, we don't need total package weight, so use portion weight as total
+                            calculator.calculatePillsNeededByWeight(fat, portion, portion)
+                        } else null
+                    }
+                    PortionMode.BY_COUNT -> {
+                        if (totalWeight != null && totalPrt != null) {
+                            calculator.calculatePillsNeededByCount(fat, totalWeight, totalPrt)
+                        } else null
+                    }
+                }
             } else {
                 null
             }
@@ -50,20 +71,27 @@ fun FatRobinApp() {
         }
     }
     
-    val errorMessage = remember(fat, totalWeight, portion, calculation) {
+    val errorMessage = remember(fat, totalWeight, portion, totalPrt, portionMode, calculation) {
         when {
             fat == null && fatPer100g.isNotEmpty() -> "Please enter a valid number for fat per 100g"
-            totalWeight == null && totalPackageWeight.isNotEmpty() -> "Please enter a valid number for total package weight"
-            portion == null && portionWeight.isNotEmpty() -> "Please enter a valid number for portion weight"
-            fat != null && totalWeight != null && portion != null && calculation == null -> "Invalid input values"
-            fat == null || totalWeight == null || portion == null -> {
+            portionMode == PortionMode.BY_COUNT && totalWeight == null && totalPackageWeight.isNotEmpty() -> "Please enter a valid number for total package weight"
+            portionMode == PortionMode.BY_WEIGHT && portion == null && portionWeight.isNotEmpty() -> "Please enter a valid number for portion weight"
+            portionMode == PortionMode.BY_COUNT && totalPrt == null && totalPortions.isNotEmpty() -> "Please enter a valid number for total portions"
+            fat != null && calculation == null -> "Invalid input values"
+            else -> {
                 val missing = mutableListOf<String>()
                 if (fat == null) missing.add("fat per 100g")
-                if (totalWeight == null) missing.add("total package weight")
-                if (portion == null) missing.add("portion weight")
-                "Please enter: ${missing.joinToString(", ")}"
+                when (portionMode) {
+                    PortionMode.BY_WEIGHT -> {
+                        if (portion == null) missing.add("portion weight")
+                    }
+                    PortionMode.BY_COUNT -> {
+                        if (totalPrt == null) missing.add("total portions in package")
+                        if (totalWeight == null) missing.add("total package weight")
+                    }
+                }
+                if (missing.isNotEmpty()) "Please enter: ${missing.joinToString(", ")}" else ""
             }
-            else -> ""
         }
     }
     
@@ -71,6 +99,7 @@ fun FatRobinApp() {
         fatPer100g = ""
         totalPackageWeight = ""
         portionWeight = ""
+        totalPortions = ""
         firstFieldFocusRequester.requestFocus()
     }
     
@@ -95,11 +124,21 @@ fun FatRobinApp() {
                 
                 Button(
                     onClick = { clearAll() },
-                    enabled = fatPer100g.isNotEmpty() || totalPackageWeight.isNotEmpty() || portionWeight.isNotEmpty(),
+                    enabled = fatPer100g.isNotEmpty() || totalPackageWeight.isNotEmpty() || portionWeight.isNotEmpty() || totalPortions.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Clear")
                 }
+                
+                MultipleChoiceButtonGroup(
+                    selectedOption = portionMode,
+                    options = listOf(
+                        MultipleChoiceButtonOption(PortionMode.BY_WEIGHT, "By Weight"),
+                        MultipleChoiceButtonOption(PortionMode.BY_COUNT, "By Count")
+                    ),
+                    onSelectionChanged = { portionMode = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
                 
                 OutlinedTextField(
                     value = fatPer100g,
@@ -117,33 +156,52 @@ fun FatRobinApp() {
                         .focusRequester(firstFieldFocusRequester)
                 )
                 
-                OutlinedTextField(
-                    value = totalPackageWeight,
-                    onValueChange = { totalPackageWeight = filterNumericInput(it) },
-                    label = { Text("Total package weight (g)") },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal,
-                        imeAction = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                OutlinedTextField(
-                    value = portionWeight,
-                    onValueChange = { portionWeight = filterNumericInput(it) },
-                    label = { Text("Portion weight (g)") },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { focusManager.clearFocus() }
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                when (portionMode) {
+                    PortionMode.BY_WEIGHT -> {
+                        OutlinedTextField(
+                            value = portionWeight,
+                            onValueChange = { portionWeight = filterNumericInput(it) },
+                            label = { Text("Portion weight (g)") },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = { focusManager.clearFocus() }
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    PortionMode.BY_COUNT -> {
+                        OutlinedTextField(
+                            value = totalPortions,
+                            onValueChange = { totalPortions = filterNumericInput(it) },
+                            label = { Text("Total portions in package") },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Next
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        
+                        OutlinedTextField(
+                            value = totalPackageWeight,
+                            onValueChange = { totalPackageWeight = filterNumericInput(it) },
+                            label = { Text("Total package weight (g)") },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Decimal,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = { focusManager.clearFocus() }
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
                 
                 if (errorMessage.isNotEmpty()) {
                     Text(
@@ -165,13 +223,24 @@ fun FatRobinApp() {
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "Pills Needed:",
+                                text = if (portionMode == PortionMode.BY_COUNT) "Pills per Portion:" else "Pills Needed for Portion:",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             
                             Text("10k units: ${calc.pills10k} pills")
                             Text("35k units: ${calc.pills35k} pills")
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            Text(
+                                text = "Pills Needed for Entire Package:",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            
+                            Text("10k units: ${calc.pillsPerPackage10k} pills")
+                            Text("35k units: ${calc.pillsPerPackage35k} pills")
                             
                             Spacer(modifier = Modifier.height(8.dp))
                             

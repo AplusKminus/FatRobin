@@ -10,7 +10,9 @@ class FatRobinAppTest {
             pills10k = 2,
             pills35k = 1,
             gramsFor10k = 5.0,
-            gramsFor35k = 17.0
+            gramsFor35k = 17.0,
+            pillsPerPackage10k = 4,
+            pillsPerPackage35k = 2
         )
         
         assertEquals(2, calculation.pills10k)
@@ -25,14 +27,18 @@ class FatRobinAppTest {
             pills10k = 2,
             pills35k = 1,
             gramsFor10k = 5.0,
-            gramsFor35k = 17.0
+            gramsFor35k = 17.0,
+            pillsPerPackage10k = 4,
+            pillsPerPackage35k = 2
         )
         
         val calc2 = PillCalculation(
             pills10k = 2,
             pills35k = 1,
             gramsFor10k = 5.0,
-            gramsFor35k = 17.0
+            gramsFor35k = 17.0,
+            pillsPerPackage10k = 4,
+            pillsPerPackage35k = 2
         )
         
         assertEquals(calc1, calc2)
@@ -44,14 +50,18 @@ class FatRobinAppTest {
             pills10k = 2,
             pills35k = 1,
             gramsFor10k = 5.0,
-            gramsFor35k = 17.0
+            gramsFor35k = 17.0,
+            pillsPerPackage10k = 4,
+            pillsPerPackage35k = 2
         )
         
         val calc2 = PillCalculation(
             pills10k = 3,
             pills35k = 1,
             gramsFor10k = 5.0,
-            gramsFor35k = 17.0
+            gramsFor35k = 17.0,
+            pillsPerPackage10k = 4,
+            pillsPerPackage35k = 2
         )
         
         assertNotEquals(calc1, calc2)

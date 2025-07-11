@@ -8,7 +8,7 @@ class FatRobinCalculatorTest {
     
     @Test
     fun `should calculate pills needed correctly for basic case`() {
-        val result = calculator.calculatePillsNeeded(
+        val result = calculator.calculatePillsNeededByWeight(
             fatPer100g = 10.0,
             totalPackageWeight = 100.0,
             portionWeight = 50.0
@@ -25,7 +25,7 @@ class FatRobinCalculatorTest {
     
     @Test
     fun `should round up pills needed when not exact`() {
-        val result = calculator.calculatePillsNeeded(
+        val result = calculator.calculatePillsNeededByWeight(
             fatPer100g = 15.0,
             totalPackageWeight = 100.0,
             portionWeight = 40.0
@@ -40,7 +40,7 @@ class FatRobinCalculatorTest {
     
     @Test
     fun `should handle zero fat correctly`() {
-        val result = calculator.calculatePillsNeeded(
+        val result = calculator.calculatePillsNeededByWeight(
             fatPer100g = 0.0,
             totalPackageWeight = 100.0,
             portionWeight = 50.0
@@ -52,7 +52,7 @@ class FatRobinCalculatorTest {
     
     @Test
     fun `should handle small portions correctly`() {
-        val result = calculator.calculatePillsNeeded(
+        val result = calculator.calculatePillsNeededByWeight(
             fatPer100g = 20.0,
             totalPackageWeight = 100.0,
             portionWeight = 10.0
@@ -67,7 +67,7 @@ class FatRobinCalculatorTest {
     
     @Test
     fun `should handle large portions correctly`() {
-        val result = calculator.calculatePillsNeeded(
+        val result = calculator.calculatePillsNeededByWeight(
             fatPer100g = 50.0,
             totalPackageWeight = 200.0,
             portionWeight = 200.0
@@ -82,7 +82,7 @@ class FatRobinCalculatorTest {
     
     @Test
     fun `should calculate grams per pill correctly`() {
-        val result = calculator.calculatePillsNeeded(
+        val result = calculator.calculatePillsNeededByWeight(
             fatPer100g = 10.0,
             totalPackageWeight = 100.0,
             portionWeight = 50.0
@@ -95,7 +95,7 @@ class FatRobinCalculatorTest {
     @Test
     fun `should throw exception for negative fat`() {
         assertFailsWith<IllegalArgumentException> {
-            calculator.calculatePillsNeeded(
+            calculator.calculatePillsNeededByWeight(
                 fatPer100g = -1.0,
                 totalPackageWeight = 100.0,
                 portionWeight = 50.0
@@ -106,7 +106,7 @@ class FatRobinCalculatorTest {
     @Test
     fun `should throw exception for zero total weight`() {
         assertFailsWith<IllegalArgumentException> {
-            calculator.calculatePillsNeeded(
+            calculator.calculatePillsNeededByWeight(
                 fatPer100g = 10.0,
                 totalPackageWeight = 0.0,
                 portionWeight = 50.0
@@ -117,7 +117,7 @@ class FatRobinCalculatorTest {
     @Test
     fun `should throw exception for negative total weight`() {
         assertFailsWith<IllegalArgumentException> {
-            calculator.calculatePillsNeeded(
+            calculator.calculatePillsNeededByWeight(
                 fatPer100g = 10.0,
                 totalPackageWeight = -10.0,
                 portionWeight = 50.0
@@ -128,7 +128,7 @@ class FatRobinCalculatorTest {
     @Test
     fun `should throw exception for zero portion weight`() {
         assertFailsWith<IllegalArgumentException> {
-            calculator.calculatePillsNeeded(
+            calculator.calculatePillsNeededByWeight(
                 fatPer100g = 10.0,
                 totalPackageWeight = 100.0,
                 portionWeight = 0.0
@@ -139,7 +139,7 @@ class FatRobinCalculatorTest {
     @Test
     fun `should throw exception for negative portion weight`() {
         assertFailsWith<IllegalArgumentException> {
-            calculator.calculatePillsNeeded(
+            calculator.calculatePillsNeededByWeight(
                 fatPer100g = 10.0,
                 totalPackageWeight = 100.0,
                 portionWeight = -10.0
@@ -150,7 +150,7 @@ class FatRobinCalculatorTest {
     @Test
     fun `should throw exception when portion weight exceeds total weight`() {
         assertFailsWith<IllegalArgumentException> {
-            calculator.calculatePillsNeeded(
+            calculator.calculatePillsNeededByWeight(
                 fatPer100g = 10.0,
                 totalPackageWeight = 100.0,
                 portionWeight = 150.0
@@ -160,7 +160,7 @@ class FatRobinCalculatorTest {
     
     @Test
     fun `should handle decimal values correctly`() {
-        val result = calculator.calculatePillsNeeded(
+        val result = calculator.calculatePillsNeededByWeight(
             fatPer100g = 12.5,
             totalPackageWeight = 80.0,
             portionWeight = 30.0
@@ -175,7 +175,7 @@ class FatRobinCalculatorTest {
     
     @Test
     fun `should handle edge case requiring multiple 35k pills`() {
-        val result = calculator.calculatePillsNeeded(
+        val result = calculator.calculatePillsNeededByWeight(
             fatPer100g = 80.0,
             totalPackageWeight = 100.0,
             portionWeight = 100.0
@@ -190,7 +190,7 @@ class FatRobinCalculatorTest {
     
     @Test
     fun `should ensure rounding is correct for edge cases`() {
-        val result = calculator.calculatePillsNeeded(
+        val result = calculator.calculatePillsNeededByWeight(
             fatPer100g = 25.0,
             totalPackageWeight = 100.0,
             portionWeight = 70.0

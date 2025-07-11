@@ -7,7 +7,9 @@ data class PillCalculation(
     val pills10k: Int,
     val pills35k: Int,
     val gramsFor10k: Double,
-    val gramsFor35k: Double
+    val gramsFor35k: Double,
+    val pillsPerPackage10k: Int,
+    val pillsPerPackage35k: Int
 )
 
 class FatRobinCalculator {
@@ -17,7 +19,7 @@ class FatRobinCalculator {
         private const val UNITS_35K_PILL = 35000.0
     }
     
-    fun calculatePillsNeeded(
+    fun calculatePillsNeededByWeight(
         fatPer100g: Double,
         totalPackageWeight: Double,
         portionWeight: Double
@@ -36,11 +38,33 @@ class FatRobinCalculator {
         val gramsFor10k = floor(UNITS_10K_PILL / UNITS_PER_GRAM_FAT)
         val gramsFor35k = floor(UNITS_35K_PILL / UNITS_PER_GRAM_FAT)
         
+        // Calculate pills needed for entire package
+        val fatInPackage = (fatPer100g / 100.0) * totalPackageWeight
+        val unitsNeededForPackage = fatInPackage * UNITS_PER_GRAM_FAT
+        val pillsPerPackage10k = ceil(unitsNeededForPackage / UNITS_10K_PILL).toInt()
+        val pillsPerPackage35k = ceil(unitsNeededForPackage / UNITS_35K_PILL).toInt()
+        
         return PillCalculation(
             pills10k = pills10k,
             pills35k = pills35k,
             gramsFor10k = gramsFor10k,
-            gramsFor35k = gramsFor35k
+            gramsFor35k = gramsFor35k,
+            pillsPerPackage10k = pillsPerPackage10k,
+            pillsPerPackage35k = pillsPerPackage35k
         )
+    }
+    
+    fun calculatePillsNeededByCount(
+        fatPer100g: Double,
+        totalPackageWeight: Double,
+        totalPortionsInPackage: Double
+    ): PillCalculation {
+        require(fatPer100g >= 0) { "Fat per 100g must be non-negative" }
+        require(totalPackageWeight > 0) { "Total package weight must be positive" }
+        require(totalPortionsInPackage > 0) { "Total portions in package must be positive" }
+        
+        val portionWeight = totalPackageWeight / totalPortionsInPackage
+        
+        return calculatePillsNeededByWeight(fatPer100g, totalPackageWeight, portionWeight)
     }
 }
