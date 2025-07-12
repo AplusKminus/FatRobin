@@ -33,6 +33,9 @@ fun FatRobinApp() {
     var portionWeight by remember { mutableStateOf("") }
     var totalPortions by remember { mutableStateOf("") }
     var weightPerFoodUnit by remember { mutableStateOf("") }
+    var totalFoodUnits by remember { mutableStateOf("") }
+    var packageWeightForFoodUnits by remember { mutableStateOf("") }
+    var useFoodUnitCount by remember { mutableStateOf(false) }
     var portionMode by remember { mutableStateOf(PortionMode.BY_WEIGHT) }
     
     val calculator = remember { FatRobinCalculator() }
@@ -50,8 +53,17 @@ fun FatRobinApp() {
     val portion = portionWeight.toDoubleOrNull()
     val totalPrt = totalPortions.toDoubleOrNull()
     val weightPerUnit = weightPerFoodUnit.toDoubleOrNull()
+    val totalUnits = totalFoodUnits.toDoubleOrNull()
+    val packageWeight = packageWeightForFoodUnits.toDoubleOrNull()
     
-    val calculation = remember(fat, totalWeight, portion, totalPrt, weightPerUnit, portionMode) {
+    // Calculate effective weight per unit based on method chosen
+    val effectiveWeightPerUnit = if (useFoodUnitCount && totalUnits != null && packageWeight != null) {
+        packageWeight / totalUnits
+    } else {
+        weightPerUnit
+    }
+    
+    val calculation = remember(fat, totalWeight, portion, totalPrt, effectiveWeightPerUnit, useFoodUnitCount, portionMode) {
         try {
             if (fat != null) {
                 when (portionMode) {
@@ -67,8 +79,8 @@ fun FatRobinApp() {
                         } else null
                     }
                     PortionMode.BY_FOOD_UNIT -> {
-                        if (weightPerUnit != null) {
-                            calculator.calculatePillsNeededByWeight(fat, weightPerUnit, weightPerUnit)
+                        if (effectiveWeightPerUnit != null) {
+                            calculator.calculatePillsNeededByWeight(fat, effectiveWeightPerUnit, effectiveWeightPerUnit)
                         } else null
                     }
                 }
@@ -87,6 +99,8 @@ fun FatRobinApp() {
         portionWeight = ""
         totalPortions = ""
         weightPerFoodUnit = ""
+        totalFoodUnits = ""
+        packageWeightForFoodUnits = ""
         firstFieldFocusRequester.requestFocus()
     }
     
@@ -112,7 +126,7 @@ fun FatRobinApp() {
                 
                 Button(
                     onClick = { clearAll() },
-                    enabled = fatPer100g.isNotEmpty() || totalPackageWeight.isNotEmpty() || portionWeight.isNotEmpty() || totalPortions.isNotEmpty() || weightPerFoodUnit.isNotEmpty(),
+                    enabled = fatPer100g.isNotEmpty() || totalPackageWeight.isNotEmpty() || portionWeight.isNotEmpty() || totalPortions.isNotEmpty() || weightPerFoodUnit.isNotEmpty() || totalFoodUnits.isNotEmpty() || packageWeightForFoodUnits.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Clear")
@@ -198,19 +212,63 @@ fun FatRobinApp() {
                         )
                     }
                     PortionMode.BY_FOOD_UNIT -> {
-                        OutlinedTextField(
-                            value = weightPerFoodUnit,
-                            onValueChange = { weightPerFoodUnit = filterNumericInput(it) },
-                            label = { Text("Weight per food unit (g)") },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Decimal,
-                                imeAction = ImeAction.Done
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = { focusManager.clearFocus() }
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Calculate from count:",
+                                modifier = Modifier.weight(1f)
+                            )
+                            Switch(
+                                checked = useFoodUnitCount,
+                                onCheckedChange = { useFoodUnitCount = it }
+                            )
+                        }
+                        
+                        if (useFoodUnitCount) {
+                            OutlinedTextField(
+                                value = totalFoodUnits,
+                                onValueChange = { totalFoodUnits = filterNumericInput(it) },
+                                label = { Text("Total food units in package") },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            
+                            OutlinedTextField(
+                                value = packageWeightForFoodUnits,
+                                onValueChange = { packageWeightForFoodUnits = filterNumericInput(it) },
+                                label = { Text("Total package weight (g)") },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = { focusManager.clearFocus() }
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        } else {
+                            OutlinedTextField(
+                                value = weightPerFoodUnit,
+                                onValueChange = { weightPerFoodUnit = filterNumericInput(it) },
+                                label = { Text("Weight per food unit (g)") },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = { focusManager.clearFocus() }
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
                 
@@ -228,9 +286,9 @@ fun FatRobinApp() {
                         if (portionMode == PortionMode.BY_FOOD_UNIT) {
                             // Special display for food unit mode
                             calculation?.let { calc ->
-                                if (fat != null && weightPerUnit != null) {
+                                if (fat != null && effectiveWeightPerUnit != null) {
                                     // Calculate actual fractional pills needed per food unit
-                                    val fatInFoodUnit = (fat / 100.0) * weightPerUnit
+                                    val fatInFoodUnit = (fat / 100.0) * effectiveWeightPerUnit
                                     val unitsNeededPerFoodUnit = fatInFoodUnit * 2000.0 // UNITS_PER_GRAM_FAT
                                     
                                     val actualPills10kPerUnit = unitsNeededPerFoodUnit / 10000.0 // UNITS_10K_PILL
