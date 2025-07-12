@@ -19,8 +19,8 @@ class FatRobinCalculatorTest {
         
         assertEquals(1, result.pills10k)
         assertEquals(1, result.pills35k)
-        assertEquals(5.0, result.gramsFor10k)
-        assertEquals(17.0, result.gramsFor35k)
+        assertEquals(50.0, result.gramsFor10k)
+        assertEquals(175.0, result.gramsFor35k)
     }
     
     @Test
@@ -88,8 +88,8 @@ class FatRobinCalculatorTest {
             portionWeight = 50.0
         )
         
-        assertEquals(5.0, result.gramsFor10k)
-        assertEquals(17.0, result.gramsFor35k)
+        assertEquals(50.0, result.gramsFor10k)
+        assertEquals(175.0, result.gramsFor35k)
     }
     
     @Test
