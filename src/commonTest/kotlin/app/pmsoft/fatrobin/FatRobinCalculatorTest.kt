@@ -202,4 +202,24 @@ class FatRobinCalculatorTest {
         assertEquals(4, result.pills10k)
         assertEquals(1, result.pills35k)
     }
+    
+    @Test
+    fun `should calculate sub-package pills correctly`() {
+        // User's scenario: 120g package, 10% fat, 3 sub-packages
+        // Each sub-package: 40g with 4g fat = 8000 units needed
+        // 10k pills needed: 8000/10000 = 0.8, rounds up to 1
+        val result = calculator.calculatePillsNeededByCount(
+            fatPer100g = 10.0,
+            totalPackageWeight = 120.0,
+            totalPortionsInPackage = 3.0
+        )
+        
+        // For portion (sub-package): 40g with 4g fat
+        assertEquals(1, result.pills10k, "Sub-package should need 1 x 10k pill")
+        assertEquals(1, result.pills35k, "Sub-package should need 1 x 35k pill")
+        
+        // For entire package: 120g with 12g fat = 24000 units
+        assertEquals(3, result.pillsPerPackage10k, "Entire package should need 3 x 10k pills")
+        assertEquals(1, result.pillsPerPackage35k, "Entire package should need 1 x 35k pill")
+    }
 }

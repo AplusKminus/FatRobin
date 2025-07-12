@@ -22,6 +22,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+data class CalculationResult(
+    val type: String,
+    val calculation: PillCalculation,
+    val description: String
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FatRobinApp() {
@@ -66,11 +72,6 @@ fun FatRobinApp() {
     val effectiveUnitWeight = calculatedWeightPerUnit ?: unitWeight
     
     // Determine which calculation methods are available
-    data class CalculationResult(
-        val type: String,
-        val calculation: PillCalculation,
-        val description: String
-    )
     
     val availableCalculations = remember(fat, directWeight, packageWeight, portions, effectiveUnitWeight) {
         mutableListOf<CalculationResult>().apply {
@@ -376,27 +377,14 @@ fun FatRobinApp() {
                                     fontSize = 14.sp
                                 )
                             } else {
-                                availableCalculations.forEach { result ->
-                                    ResultSection(
-                                        title = result.description,
-                                        calculation = result.calculation,
-                                        type = result.type,
-                                        fat = fat,
-                                        effectiveWeight = when(result.type) {
-                                            "food_unit" -> effectiveUnitWeight
-                                            "direct" -> directWeight
-                                            "package" -> if (packageWeight != null && portions != null && portions > 0) packageWeight / portions else null
-                                            else -> null
-                                        }
-                                    )
-                                    
-                                    if (result != availableCalculations.last()) {
-                                        HorizontalDivider(
-                                            modifier = Modifier.padding(vertical = 4.dp),
-                                            color = MaterialTheme.colorScheme.outlineVariant
-                                        )
-                                    }
-                                }
+                                UnifiedResultsTable(
+                                    calculations = availableCalculations,
+                                    fat = fat,
+                                    directWeight = directWeight,
+                                    packageWeight = packageWeight,
+                                    portions = portions,
+                                    effectiveUnitWeight = effectiveUnitWeight
+                                )
                             }
                         }
                     }
@@ -445,72 +433,116 @@ fun MethodCard(
 }
 
 @Composable
-fun ResultSection(
-    title: String,
-    calculation: PillCalculation,
-    type: String,
-    fat: Double? = null,
-    effectiveWeight: Double? = null
+fun UnifiedResultsTable(
+    calculations: List<CalculationResult>,
+    fat: Double?,
+    directWeight: Double?,
+    packageWeight: Double?,
+    portions: Double?,
+    effectiveUnitWeight: Double?
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = title,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.primary
-        )
+        // Determine which columns to show
+        val hasPackage = calculations.any { it.type == "package" }
+        val hasFoodUnit = calculations.any { it.type == "food_unit" }
         
-        if (type == "food_unit" && fat != null && effectiveWeight != null) {
-            // Special food unit display logic with smart ratios
-            val fatInFoodUnit = (fat / 100.0) * effectiveWeight
-            val unitsNeeded = fatInFoodUnit * 2000.0
+        // Header row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("", modifier = Modifier.weight(0.6f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("🍽️", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("g/💊", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("💊/📋", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            if (hasPackage) {
+                Text("💊/📦", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+            if (hasFoodUnit) {
+                Text("🍎", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        
+        // 10k row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("10k", modifier = Modifier.weight(0.6f), fontSize = 12.sp, fontWeight = FontWeight.Medium)
             
-            val actualPills10k = unitsNeeded / 10000.0
-            val actualPills35k = unitsNeeded / 35000.0
+            // Use first calculation for portion and grams columns
+            val firstCalc = calculations.first()
+            Text("${firstCalc.calculation.pills10k} 💊", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
+            Text("${firstCalc.calculation.gramsFor10k.toInt()}g", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
             
-            // For 10k pills
-            if (actualPills10k > 1) {
-                Text("10k units: ${calculation.pills10k} pills per food unit")
-            } else if (actualPills10k == 1.0) {
-                Text("10k units: 1 pill per food unit")
-            } else {
-                val unitsPerPill = (1.0 / actualPills10k).toInt()
-                Text("10k units: $unitsPerPill food units per pill")
+            // For sub-package column, use package calculation if available, otherwise use first calculation
+            val subPackageCalc = calculations.firstOrNull { it.type == "package" } ?: firstCalc
+            Text("${subPackageCalc.calculation.pills10k} 💊", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
+            
+            if (hasPackage) {
+                val packageCalc = calculations.firstOrNull { it.type == "package" }
+                val packageText = packageCalc?.calculation?.pillsPerPackage10k?.let { "${it} 💊" } ?: "-"
+                Text(packageText, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
             }
             
-            // For 35k pills
-            if (actualPills35k > 1) {
-                Text("35k units: ${calculation.pills35k} pills per food unit")
-            } else if (actualPills35k == 1.0) {
-                Text("35k units: 1 pill per food unit")
-            } else {
-                val unitsPerPill = (1.0 / actualPills35k).toInt()
-                Text("35k units: $unitsPerPill food units per pill")
+            if (hasFoodUnit) {
+                val foodCalc = calculations.firstOrNull { it.type == "food_unit" }
+                val foodText = if (foodCalc != null && fat != null && effectiveUnitWeight != null) {
+                    val fatInFoodUnit = (fat / 100.0) * effectiveUnitWeight
+                    val unitsNeeded = fatInFoodUnit * 2000.0
+                    val actualPills10k = unitsNeeded / 10000.0
+                    
+                    if (actualPills10k > 1) {
+                        "${foodCalc.calculation.pills10k} 💊"
+                    } else if (actualPills10k == 1.0) {
+                        "1 💊"
+                    } else {
+                        val unitsPerPill = (1.0 / actualPills10k).toInt()
+                        "$unitsPerPill 🍎"
+                    }
+                } else "-"
+                Text(foodText, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
             }
-        } else {
-            Text("10k units: ${calculation.pills10k} ${if (calculation.pills10k == 1) "pill" else "pills"}")
-            Text("35k units: ${calculation.pills35k} ${if (calculation.pills35k == 1) "pill" else "pills"}")
+        }
+        
+        // 35k row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("35k", modifier = Modifier.weight(0.6f), fontSize = 12.sp, fontWeight = FontWeight.Medium)
             
-            if (type == "package") {
-                Text(
-                    text = "For entire package:",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-                Text("10k units: ${calculation.pillsPerPackage10k} ${if (calculation.pillsPerPackage10k == 1) "pill" else "pills"}")
-                Text("35k units: ${calculation.pillsPerPackage35k} ${if (calculation.pillsPerPackage35k == 1) "pill" else "pills"}")
+            val firstCalc = calculations.first()
+            Text("${firstCalc.calculation.pills35k} 💊", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
+            Text("${firstCalc.calculation.gramsFor35k.toInt()}g", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
+            
+            // For sub-package column, use package calculation if available, otherwise use first calculation
+            val subPackageCalc35k = calculations.firstOrNull { it.type == "package" } ?: firstCalc
+            Text("${subPackageCalc35k.calculation.pills35k} 💊", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
+            
+            if (hasPackage) {
+                val packageCalc = calculations.firstOrNull { it.type == "package" }
+                val packageText = packageCalc?.calculation?.pillsPerPackage35k?.let { "${it} 💊" } ?: "-"
+                Text(packageText, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
             }
             
-            if (type == "direct") {
-                Text(
-                    text = "Coverage per pill:",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-                Text("10k pill covers: ${calculation.gramsFor10k}g of product")
-                Text("35k pill covers: ${calculation.gramsFor35k}g of product")
+            if (hasFoodUnit) {
+                val foodCalc = calculations.firstOrNull { it.type == "food_unit" }
+                val foodText = if (foodCalc != null && fat != null && effectiveUnitWeight != null) {
+                    val fatInFoodUnit = (fat / 100.0) * effectiveUnitWeight
+                    val unitsNeeded = fatInFoodUnit * 2000.0
+                    val actualPills35k = unitsNeeded / 35000.0
+                    
+                    if (actualPills35k > 1) {
+                        "${foodCalc.calculation.pills35k} 💊"
+                    } else if (actualPills35k == 1.0) {
+                        "1 💊"
+                    } else {
+                        val unitsPerPill = (1.0 / actualPills35k).toInt()
+                        "$unitsPerPill 🍎"
+                    }
+                } else "-"
+                Text(foodText, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
             }
         }
     }
