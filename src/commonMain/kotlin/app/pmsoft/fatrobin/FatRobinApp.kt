@@ -146,49 +146,41 @@ fun FatRobinApp() {
                     Text("Clear All")
                 }
                 
-                // Core input - always visible and prominent
-                Card(
+                // Product Information
+                MethodCard(
                     modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                    )
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Product Information",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = fatPer100g,
-                            onValueChange = { fatPer100g = filterNumericInput(it) },
-                            label = { Text("Fat per 100g") },
-                            placeholder = { Text("Required for all calculations") },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Decimal,
-                                imeAction = ImeAction.Next
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .focusRequester(fatFieldFocusRequester)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = totalPackageWeight,
-                            onValueChange = { totalPackageWeight = filterNumericInput(it) },
-                            label = { Text("Package weight (g)") },
-                            placeholder = { Text("Optional - used for package division and food unit calculations") },
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Decimal,
-                                imeAction = ImeAction.Next
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    title = "Product Information",
+                    isActive = fat != null || packageWeight != null,
+                    content = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = fatPer100g,
+                                onValueChange = { fatPer100g = filterNumericInput(it) },
+                                label = { Text("Fat per 100g") },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Next
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .focusRequester(fatFieldFocusRequester)
+                            )
+                            OutlinedTextField(
+                                value = totalPackageWeight,
+                                onValueChange = { totalPackageWeight = filterNumericInput(it) },
+                                label = { Text("Package weight (g)") },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal,
+                                    imeAction = ImeAction.Next
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
-                }
+                )
                 
                 // Calculation methods grid
                 Text(
