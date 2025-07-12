@@ -391,7 +391,7 @@ fun FatRobinApp() {
                                     )
                                     
                                     if (result != availableCalculations.last()) {
-                                        Divider(
+                                        HorizontalDivider(
                                             modifier = Modifier.padding(vertical = 4.dp),
                                             color = MaterialTheme.colorScheme.outlineVariant
                                         )

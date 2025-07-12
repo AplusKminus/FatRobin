@@ -37,7 +37,7 @@ fun <T> MultipleChoiceButtonGroup(
             .height(IntrinsicSize.Min)
             .background(shape = RoundedCornerShape(percent = 50), color = Color.Transparent)
             .border(
-                border = ButtonDefaults.outlinedButtonBorder,
+                border = ButtonDefaults.outlinedButtonBorder(enabled = true),
                 shape = RoundedCornerShape(percent = 50),
             ),
     ) {
