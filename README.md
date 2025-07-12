@@ -1,104 +1,84 @@
 # FatRobin 🐦
+**Practical PERT dosing—no guesswork, no math errors.**
 
-**Making enzyme dosing simple and accurate**
+**FatRobin** is a precision calculator for people managing pancreatic enzyme replacement therapy (PERT). Whether you’re estimating pills for your meal, breaking down a food package, or figuring out how much you can safely eat with your available pills—FatRobin handles the math.
 
-FatRobin is a practical companion app for people managing pancreatic enzyme replacement therapy (PERT). Whether you're calculating how many pills you need for a meal or figuring out how much fat you can safely consume with your current pills, FatRobin eliminates the guesswork and math errors that can impact your comfort and health.
+## ✅ What It Does
 
-## Why FatRobin?
+- Calculates how many enzyme pills you need **for a portion, package, or unit**.
+- Shows how much fat a pill covers based on entered data.
+- Supports multiple pill strengths (10k, 35k out of the box).
+- Offers **3 calculation modes** depending on what info you have.
+- Rounds results safely (up for pills, down for fat coverage).
 
-If you or someone you care for needs digestive enzymes with meals, you know the drill: read nutrition labels, calculate fat content, figure out portions, do the math for enzyme units, and hope you got it right. Get it wrong, and you might face uncomfortable digestive issues or feel restricted in your food choices.
+## 🧠 Calculation Modes
 
-**FatRobin solves this by doing the calculations for you, quickly and accurately.**
+Use **any** of these. Results appear as you enter data:
 
-### The Two Ways You'll Use FatRobin
+1. **Direct Weight**  
+   *“This portion weighs 300g. How many pills do I need?”*
 
-#### 📊 **Planning Your Meal** 
-*"I want to eat this. How many pills do I need?"*
+2. **Package Division**  
+   *“This package weighs 800g and has 4 servings. What’s the dose per serving?”*
 
-Enter the fat content per 100g, total package weight, and your planned portion size. FatRobin instantly tells you exactly how many 10k or 35k unit pills you need.
+3. **Food Units**  
+   *“I eat 1 slice at a time. What's the dose per slice?”*  
+   You can enter weight per unit, or total units in a package—FatRobin auto-completes the rest.
 
-#### 🍽️ **Planning Your Portion**
-*"I have these pills. How much fat can I safely eat?"*
+## 💊 Results Table
 
-See at a glance how many grams of fat each pill type covers, helping you plan portions or choose between different foods with confidence.
+No dropdowns. No extra taps. You get an instant table:
 
-## Perfect For
+| Pill Type | Per Portion | g/Fat per Pill | Per Sub-Unit | Per Package | Per Food Unit |
+|-----------|-------------|----------------|---------------|-------------|------------|
+| 10k       | 2 💊        | 25g            | 1 💊          | 6 💊        | 3 💊       |
+| 35k       | 1 💊        | 87g            | 1 💊          | 2 💊        | 3 🍎       |
 
-- **Parents** managing their child's enzyme therapy
-- **Adults** handling their own PERT regimen  
-- **Caregivers** helping elderly family members
-- **Anyone** who wants to eat with confidence and avoid calculation errors
+(Real-time values shown in the app)
 
-## How It Works
+## 🧾 Perfect For
 
-FatRobin uses the standard enzyme-to-fat ratio that your healthcare team has established. The app:
+- Parents managing a child’s enzyme intake
+- Adults following their own regimen
+- Caregivers assisting someone else
+- Anyone using Creon or similar enzymes
 
-- ✅ **Always rounds up** pill calculations (because taking too little can cause problems)
-- ✅ **Always rounds down** fat coverage per pill (for safety margins)
-- ✅ **Validates your inputs** to prevent calculation errors
-- ✅ **Works instantly** - no internet connection required
+## 🛠️ Features
 
-## Real-World Examples
+- 📊 Multiple input methods (weight, servings, units)
+- 💡 Smart validation & autofill between methods
+- 💊 Dual pill size support (10k, 35k)
+- ⚙️ Works offline, no logins or internet needed
+- 🌗 Material 3 UI (light/dark themes follow device)
 
-**Scenario 1: Pizza Night**
-- Pizza has 11g fat per 100g
-- Large pizza weighs 800g
-- You want 3 slices (about 300g)
-- FatRobin instantly shows: "You need 2 pills of 35k units"
+## 🧪 Upcoming
 
-**Scenario 2: Snack Planning**
-- You have 1 pill of 10k units
-- FatRobin shows: "This covers up to 5g of fat"
-- Perfect for choosing between snack options
+- Custom pill strengths
+- Custom enzyme-to-fat ratios
+- Save meals for later reuse
 
-**Scenario 3: Restaurant Dining**
-- Estimated portion is 250g
-- Dish has 15g fat per 100g  
-- FatRobin calculates: "Take 2 pills of 35k units or 4 pills of 10k units"
+## 📱 Platform
 
-## Features
+- ✅ **Android** – Available now
+- 🚧 **iOS** – In progress (Kotlin Multiplatform-ready)
 
-### Current Version
-- 📱 **Simple, clean interface** - no confusing menus or settings
-- 🧮 **Dual calculations** - pills needed OR fat coverage per pill
-- ⚡ **Instant results** - calculations happen as you type
-- 🔍 **Input validation** - prevents common entry errors
-- 📊 **Both pill sizes** - shows options for 10k and 35k unit pills
+## ⚠️ Disclaimer
 
-### Coming Soon
-- ⚙️ **Custom dosing ratios** - set your own enzyme-to-fat ratio
-- 💊 **Custom pill sizes** - add different enzyme unit strengths
-- 📝 **Meal memory** - save calculations for frequent foods
-- 🌙 **Dark mode** - easier on the eyes
+FatRobin does not give medical advice. It’s a dosing calculator for people already prescribed enzymes. Always follow your healthcare provider’s instructions.
 
-## Platform Support
+## 🚀 Get Started
 
-- ✅ **Android** - Available now
-- 🔄 **iOS** - Coming soon
-
-## Technical Notes
-
-FatRobin is built with Kotlin Multiplatform, ensuring consistent calculations across all devices. The app works completely offline and doesn't collect or store any personal health information.
-
-## Important Note
-
-FatRobin is designed for people already following an established enzyme replacement therapy regimen. Always consult with your healthcare provider about your enzyme dosing strategy. This app is a calculation tool, not medical advice.
-
-## Getting Started
-
-1. **Download** FatRobin for Android
-2. **Enter** your food's fat content and portion size
-3. **Get** your pill calculation instantly
-4. **Eat** with confidence
-
----
+1. Download FatRobin (Android)
+2. Enter fat per 100g and choose your method
+3. Read the results table
+4. Dose with confidence
 
 ### Support & Feedback
 
 Found a bug? Have a feature request? We'd love to hear from you!
 
-**FatRobin** - *Because good digestion shouldn't require a math degree* 🐦
-
 ---
+
+**FatRobin** – because enzyme math should never be a pain in the gut. 🐦
 
 *Part of the bird-themed app family*
