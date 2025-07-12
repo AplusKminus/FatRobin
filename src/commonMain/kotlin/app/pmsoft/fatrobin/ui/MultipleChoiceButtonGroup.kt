@@ -2,8 +2,11 @@ package app.pmsoft.fatrobin.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +34,7 @@ fun <T> MultipleChoiceButtonGroup(
     }
     Row(
         modifier = modifier
+            .height(IntrinsicSize.Min)
             .background(shape = RoundedCornerShape(percent = 50), color = Color.Transparent)
             .border(
                 border = ButtonDefaults.outlinedButtonBorder,
@@ -74,6 +78,7 @@ private fun RowScope.MultipleChoiceButton(
         onClick = onClick,
         modifier = Modifier
             .weight(1f)
+            .fillMaxHeight()
             .background(
                 color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
                 shape = when {
