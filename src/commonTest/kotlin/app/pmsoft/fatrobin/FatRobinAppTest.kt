@@ -5,65 +5,76 @@ import kotlin.test.*
 class FatRobinAppTest {
     
     @Test
-    fun `PillCalculation data class should store values correctly`() {
-        val calculation = PillCalculation(
-            pills10k = 2,
-            pills35k = 1,
-            gramsFor10k = 5.0,
-            gramsFor35k = 17.0,
-            pillsPerPackage10k = 4,
-            pillsPerPackage35k = 2
-        )
+    fun `FatRobinCalculator should store input values correctly`() {
+        val calculator = FatRobinCalculator()
+        calculator.fatPer100g = 10.0
+        calculator.directWeight = 50.0
+        calculator.packageWeight = 100.0
+        calculator.portions = 2.0
         
-        assertEquals(2, calculation.pills10k)
-        assertEquals(1, calculation.pills35k)
-        assertEquals(5.0, calculation.gramsFor10k)
-        assertEquals(17.0, calculation.gramsFor35k)
+        assertEquals(10.0, calculator.fatPer100g)
+        assertEquals(50.0, calculator.directWeight)
+        assertEquals(100.0, calculator.packageWeight)
+        assertEquals(2.0, calculator.portions)
     }
     
     @Test
-    fun `PillCalculation should support equality comparison`() {
-        val calc1 = PillCalculation(
-            pills10k = 2,
-            pills35k = 1,
-            gramsFor10k = 5.0,
-            gramsFor35k = 17.0,
-            pillsPerPackage10k = 4,
-            pillsPerPackage35k = 2
-        )
+    fun `FatRobinCalculator should have correct calculation availability flags`() {
+        val calculator = FatRobinCalculator()
         
-        val calc2 = PillCalculation(
-            pills10k = 2,
-            pills35k = 1,
-            gramsFor10k = 5.0,
-            gramsFor35k = 17.0,
-            pillsPerPackage10k = 4,
-            pillsPerPackage35k = 2
-        )
+        // Initially nothing available
+        assertFalse(calculator.hasDirectWeight)
+        assertFalse(calculator.hasPackageDivision)
+        assertFalse(calculator.hasFoodUnit)
+        assertFalse(calculator.hasPackage)
         
-        assertEquals(calc1, calc2)
+        // With fat only
+        calculator.fatPer100g = 10.0
+        assertFalse(calculator.hasDirectWeight)
+        assertFalse(calculator.hasPackageDivision)
+        assertFalse(calculator.hasFoodUnit)
+        assertFalse(calculator.hasPackage)
+        
+        // With fat and direct weight
+        calculator.directWeight = 50.0
+        assertTrue(calculator.hasDirectWeight)
+        assertFalse(calculator.hasPackageDivision)
+        assertFalse(calculator.hasFoodUnit)
+        assertFalse(calculator.hasPackage)
+        
+        // With fat, package weight and portions
+        calculator.packageWeight = 100.0
+        calculator.portions = 2.0
+        assertTrue(calculator.hasDirectWeight)
+        assertTrue(calculator.hasPackageDivision)
+        assertFalse(calculator.hasFoodUnit)
+        assertTrue(calculator.hasPackage)
+        
+        // With food unit weight
+        calculator.unitWeight = 25.0
+        assertTrue(calculator.hasDirectWeight)
+        assertTrue(calculator.hasPackageDivision)
+        assertTrue(calculator.hasFoodUnit)
+        assertTrue(calculator.hasPackage)
     }
     
     @Test
-    fun `PillCalculation should handle different values`() {
-        val calc1 = PillCalculation(
-            pills10k = 2,
-            pills35k = 1,
-            gramsFor10k = 5.0,
-            gramsFor35k = 17.0,
-            pillsPerPackage10k = 4,
-            pillsPerPackage35k = 2
-        )
+    fun `FatRobinCalculator clear should reset all values`() {
+        val calculator = FatRobinCalculator()
+        calculator.fatPer100g = 10.0
+        calculator.directWeight = 50.0
+        calculator.packageWeight = 100.0
+        calculator.portions = 2.0
+        calculator.unitWeight = 25.0
+        calculator.foodUnits = 4.0
         
-        val calc2 = PillCalculation(
-            pills10k = 3,
-            pills35k = 1,
-            gramsFor10k = 5.0,
-            gramsFor35k = 17.0,
-            pillsPerPackage10k = 4,
-            pillsPerPackage35k = 2
-        )
+        calculator.clear()
         
-        assertNotEquals(calc1, calc2)
+        assertNull(calculator.fatPer100g)
+        assertNull(calculator.directWeight)
+        assertNull(calculator.packageWeight)
+        assertNull(calculator.portions)
+        assertNull(calculator.unitWeight)
+        assertNull(calculator.foodUnits)
     }
 }
