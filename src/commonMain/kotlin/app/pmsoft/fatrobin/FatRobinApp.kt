@@ -1,11 +1,14 @@
 package app.pmsoft.fatrobin
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -26,12 +29,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+// Visual tuning parameter for connection line vertical positioning (as fraction of field height)
+private const val CONNECTION_VERTICAL_OFFSET_FRACTION = 0.07f // Adjust this to fine-tune line positioning
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +63,16 @@ fun FatRobinApp() {
   var totalFoodUnits by remember { mutableStateOf("") }
 
   val fatFieldFocusRequester = remember { FocusRequester() }
+
+  // Connection points for visual connections
+  var fatFieldConnectionPoint by remember { mutableStateOf(Offset.Zero) }
+  var packageWeightConnectionPoint by remember { mutableStateOf(Offset.Zero) }
+  var portionWeightConnectionPoint by remember { mutableStateOf(Offset.Zero) }
+  var totalPortionsConnectionPoint by remember { mutableStateOf(Offset.Zero) }
+  var totalPortionsRightConnectionPoint by remember { mutableStateOf(Offset.Zero) }
+  var weightPerFoodUnitConnectionPoint by remember { mutableStateOf(Offset.Zero) }
+  var totalFoodUnitsConnectionPoint by remember { mutableStateOf(Offset.Zero) }
+  var totalFoodUnitsRightConnectionPoint by remember { mutableStateOf(Offset.Zero) }
 
   fun filterNumericInput(input: String): String {
     return input.filter { char ->
@@ -93,46 +113,215 @@ fun FatRobinApp() {
       Column(
         modifier = Modifier
           .fillMaxSize()
-          .verticalScroll(rememberScrollState())
-          .padding(16.dp),
+          .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
-        // Header
-        Text(
-          text = "FatRobin",
-          fontSize = 24.sp,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.primary,
-          textAlign = TextAlign.Center,
-          modifier = Modifier.fillMaxWidth(),
-        )
-
-        // Clear button
-        Button(
-          onClick = { clearAll() },
-          enabled = fatPer100g.isNotEmpty() || portionWeight.isNotEmpty() ||
-            totalPackageWeight.isNotEmpty() || totalPortions.isNotEmpty() ||
-            weightPerFoodUnit.isNotEmpty() || totalFoodUnits.isNotEmpty(),
-          modifier = Modifier.fillMaxWidth(),
+        // Top components with padding
+        Column(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+          verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-          Text("Clear All")
+          // Header
+          Text(
+            text = "FatRobin",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+          )
+
+          // Clear button
+          Button(
+            onClick = { clearAll() },
+            enabled = fatPer100g.isNotEmpty() || portionWeight.isNotEmpty() ||
+              totalPackageWeight.isNotEmpty() || totalPortions.isNotEmpty() ||
+              weightPerFoodUnit.isNotEmpty() || totalFoodUnits.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
+          ) {
+            Text("Clear All")
+          }
+
+          // Results section
+          ResultsTable(
+            calculator = calculator,
+            pillDoses = pillDoses,
+          )
         }
 
-        // Results section
-        ResultsTable(
-          calculator = calculator,
-          pillDoses = pillDoses,
-        )
+        // All inputs with visual connections (no outer padding)
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
+        ) {
+          // Visual connection lines
+          Canvas(
+            modifier = Modifier
+              .fillMaxWidth()
+              .fillMaxHeight(),
+          ) {
+            // Draw connection lines for all fields
+            // Unified branching system: left branch controlled by fat input, right branch by package weight
+            
+            val leftBranchColor = if (calculator.fatPer100g != null) Color.Blue else Color.Gray
+            val rightBranchColor = if (calculator.packageWeight != null) Color.Blue else Color.Gray
 
-        // Product Information
-        MethodCard(
-          modifier = Modifier.fillMaxWidth(),
-          title = "Product Information",
-          isActive = calculator.fatPer100g != null || calculator.packageWeight != null,
-          content = {
+            // Fat field connection (left side, to 16dp from left edge)
+            if (fatFieldConnectionPoint != Offset.Zero) {
+              val targetX = 16.dp.toPx()
+
+              drawLine(
+                color = leftBranchColor,
+                start = fatFieldConnectionPoint,
+                end = Offset(targetX, fatFieldConnectionPoint.y),
+                strokeWidth = 3.dp.toPx(),
+                cap = StrokeCap.Round,
+              )
+            }
+
+            // Package weight connection (right side, to 16dp from right edge)
+            if (packageWeightConnectionPoint != Offset.Zero) {
+              val targetX = size.width - 16.dp.toPx()
+
+              drawLine(
+                color = rightBranchColor,
+                start = packageWeightConnectionPoint,
+                end = Offset(targetX, packageWeightConnectionPoint.y),
+                strokeWidth = 3.dp.toPx(),
+                cap = StrokeCap.Round,
+              )
+            }
+
+            // Portion weight connection (left side, to 16dp from left edge)
+            if (portionWeightConnectionPoint != Offset.Zero) {
+              val targetX = 16.dp.toPx()
+
+              drawLine(
+                color = leftBranchColor,
+                start = portionWeightConnectionPoint,
+                end = Offset(targetX, portionWeightConnectionPoint.y),
+                strokeWidth = 3.dp.toPx(),
+                cap = StrokeCap.Round,
+              )
+            }
+
+            // Total portions connections (needs both fat and package weight)
+            if (totalPortionsConnectionPoint != Offset.Zero && totalPortionsRightConnectionPoint != Offset.Zero) {
+              // Left connection (from fat branch)
+              val leftTargetX = 16.dp.toPx()
+
+              drawLine(
+                color = leftBranchColor,
+                start = totalPortionsConnectionPoint,
+                end = Offset(leftTargetX, totalPortionsConnectionPoint.y),
+                strokeWidth = 3.dp.toPx(),
+                cap = StrokeCap.Round,
+              )
+
+              // Right connection (from package weight branch)
+              val rightTargetX = size.width - 16.dp.toPx()
+
+              drawLine(
+                color = rightBranchColor,
+                start = totalPortionsRightConnectionPoint,
+                end = Offset(rightTargetX, totalPortionsRightConnectionPoint.y),
+                strokeWidth = 3.dp.toPx(),
+                cap = StrokeCap.Round,
+              )
+            }
+
+            // Weight per food unit connection (left side, to 16dp from left edge)
+            if (weightPerFoodUnitConnectionPoint != Offset.Zero) {
+              val targetX = 16.dp.toPx()
+
+              drawLine(
+                color = leftBranchColor,
+                start = weightPerFoodUnitConnectionPoint,
+                end = Offset(targetX, weightPerFoodUnitConnectionPoint.y),
+                strokeWidth = 3.dp.toPx(),
+                cap = StrokeCap.Round,
+              )
+            }
+
+            // Total food units connections (needs both fat and package weight)
+            if (totalFoodUnitsConnectionPoint != Offset.Zero && totalFoodUnitsRightConnectionPoint != Offset.Zero) {
+              // Left connection (from fat branch)
+              val leftTargetX = 16.dp.toPx()
+
+              drawLine(
+                color = leftBranchColor,
+                start = totalFoodUnitsConnectionPoint,
+                end = Offset(leftTargetX, totalFoodUnitsConnectionPoint.y),
+                strokeWidth = 3.dp.toPx(),
+                cap = StrokeCap.Round,
+              )
+
+              // Right connection (from package weight branch)
+              val rightTargetX = size.width - 16.dp.toPx()
+
+              drawLine(
+                color = rightBranchColor,
+                start = totalFoodUnitsRightConnectionPoint,
+                end = Offset(rightTargetX, totalFoodUnitsRightConnectionPoint.y),
+                strokeWidth = 3.dp.toPx(),
+                cap = StrokeCap.Round,
+              )
+            }
+
+            // Vertical connection lines
+
+            // Left vertical line: from fat field to total food units (via all left-connected fields)
+            if (fatFieldConnectionPoint != Offset.Zero && totalFoodUnitsConnectionPoint != Offset.Zero) {
+              val leftX = 16.dp.toPx()
+              val startY = fatFieldConnectionPoint.y
+              val endY = totalFoodUnitsConnectionPoint.y
+
+              drawLine(
+                color = leftBranchColor,
+                start = Offset(leftX, startY),
+                end = Offset(leftX, endY),
+                strokeWidth = 3.dp.toPx(),
+                cap = StrokeCap.Round,
+              )
+            }
+
+            // Right vertical line: from package weight to total food units
+            if (packageWeightConnectionPoint != Offset.Zero && totalFoodUnitsRightConnectionPoint != Offset.Zero) {
+              val rightX = size.width - 16.dp.toPx()
+              val startY = packageWeightConnectionPoint.y
+              val endY = totalFoodUnitsRightConnectionPoint.y
+
+              drawLine(
+                color = rightBranchColor,
+                start = Offset(rightX, startY),
+                end = Offset(rightX, endY),
+                strokeWidth = 3.dp.toPx(),
+                cap = StrokeCap.Round,
+              )
+            }
+          }
+
+          // All input fields in one column
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(horizontal = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+          ) {
+            // Product Information
+            Text(
+              text = "Product Information",
+              fontSize = 14.sp,
+              fontWeight = FontWeight.Medium,
+              textAlign = TextAlign.Center,
+              modifier = Modifier.fillMaxWidth(),
+            )
+
             Row(
               modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
               OutlinedTextField(
                 value = fatPer100g,
@@ -143,9 +332,32 @@ fun FatRobinApp() {
                   imeAction = ImeAction.Next,
                 ),
                 modifier = Modifier
-                  .weight(1f)
-                  .focusRequester(fatFieldFocusRequester),
+                  .fillMaxWidth(0.8f)
+                  .focusRequester(fatFieldFocusRequester)
+                  .onGloballyPositioned { coordinates ->
+                    // Get position relative to the Box (Canvas parent)
+                    var currentParent = coordinates.parentCoordinates
+                    // Go up the hierarchy: TextField -> Row -> Column -> Box
+                    repeat(4) {
+                      currentParent = currentParent?.parentCoordinates
+                    }
+                    if (currentParent != null) {
+                      val fieldPosition = currentParent.localPositionOf(coordinates, Offset.Zero)
+
+                      // Calculate connection point with proportional tuning offset
+                      val fieldCenterY = fieldPosition.y + (coordinates.size.height / 2f)
+                      val proportionalOffset = coordinates.size.height * CONNECTION_VERTICAL_OFFSET_FRACTION
+                      val adjustedY = fieldCenterY + proportionalOffset
+                      fatFieldConnectionPoint = Offset(fieldPosition.x, adjustedY)
+                    }
+                  },
               )
+            }
+
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.End,
+            ) {
               OutlinedTextField(
                 value = totalPackageWeight,
                 onValueChange = { totalPackageWeight = filterNumericInput(it) },
@@ -154,47 +366,42 @@ fun FatRobinApp() {
                   keyboardType = KeyboardType.Decimal,
                   imeAction = ImeAction.Next,
                 ),
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                  .fillMaxWidth(0.8f)
+                  .onGloballyPositioned { coordinates ->
+                    // Get position relative to the Box (Canvas parent)
+                    var currentParent = coordinates.parentCoordinates
+                    // Go up the hierarchy: TextField -> Row -> Column -> Box
+                    repeat(4) {
+                      currentParent = currentParent?.parentCoordinates
+                    }
+                    if (currentParent != null) {
+                      val fieldPosition = currentParent.localPositionOf(coordinates, Offset.Zero)
+
+                      // Calculate connection point with proportional tuning offset
+                      val fieldCenterY = fieldPosition.y + (coordinates.size.height / 2f)
+                      val proportionalOffset = coordinates.size.height * CONNECTION_VERTICAL_OFFSET_FRACTION
+                      val adjustedY = fieldCenterY + proportionalOffset
+                      // Package weight uses right edge for connection
+                      val rightX = fieldPosition.x + coordinates.size.width
+                      packageWeightConnectionPoint = Offset(rightX, adjustedY)
+                    }
+                  },
               )
             }
-          },
-        )
 
-        // Calculation methods grid
-        Text(
-          text = "Choose Your Method",
-          fontSize = 18.sp,
-          fontWeight = FontWeight.Medium,
-          modifier = Modifier.padding(top = 8.dp),
-        )
+            // Method 1: Direct Weight
+            Text(
+              text = "Direct Weight",
+              fontSize = 14.sp,
+              fontWeight = FontWeight.Medium,
+              textAlign = TextAlign.Center,
+              modifier = Modifier.fillMaxWidth(),
+            )
 
-        Text(
-          text = "Fill in fields for any method you prefer. Multiple calculations will show if you provide enough information.",
-          fontSize = 14.sp,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          modifier = Modifier.padding(bottom = 8.dp),
-        )
-
-        // Method cards - vertical layout for better readability
-        Column(
-          modifier = Modifier.fillMaxWidth(),
-          verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-          // Method 1: Direct Weight
-          MethodCard(
-            modifier = Modifier.fillMaxWidth(),
-            title = "Direct Weight",
-            isActive = calculator.fatPer100g != null && calculator.directWeight != null,
-            content = {
-              if (calculator.fatPer100g == null) {
-                Text(
-                  text = "Enter fat per 100g above to use this method",
-                  fontSize = 14.sp,
-                  color = MaterialTheme.colorScheme.error,
-                  modifier = Modifier.padding(bottom = 8.dp),
-                )
-              }
-
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+            ) {
               OutlinedTextField(
                 value = portionWeight,
                 onValueChange = { portionWeight = filterNumericInput(it) },
@@ -204,33 +411,42 @@ fun FatRobinApp() {
                   keyboardType = KeyboardType.Decimal,
                   imeAction = ImeAction.Done,
                 ),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                  .fillMaxWidth(0.8f)
+                  .onGloballyPositioned { coordinates ->
+                    // Get position relative to the Box (Canvas parent)
+                    var currentParent = coordinates.parentCoordinates
+                    // Go up the hierarchy: TextField -> Row -> Column -> Box
+                    repeat(4) {
+                      currentParent = currentParent?.parentCoordinates
+                    }
+                    if (currentParent != null) {
+                      val fieldPosition = currentParent.localPositionOf(coordinates, Offset.Zero)
+
+                      // Calculate connection point with proportional tuning offset
+                      val fieldCenterY = fieldPosition.y + (coordinates.size.height / 2f)
+                      val proportionalOffset = coordinates.size.height * CONNECTION_VERTICAL_OFFSET_FRACTION
+                      val adjustedY = fieldCenterY + proportionalOffset
+                      // Left edge for connection
+                      portionWeightConnectionPoint = Offset(fieldPosition.x, adjustedY)
+                    }
+                  },
               )
-            },
-          )
+            }
 
-          // Method 2: Package Division
-          MethodCard(
-            modifier = Modifier.fillMaxWidth(),
-            title = "Package Division",
-            isActive = calculator.fatPer100g != null && calculator.packageWeight != null && calculator.portions != null,
-            content = {
-              if (calculator.fatPer100g == null) {
-                Text(
-                  text = "Enter fat per 100g above to use this method",
-                  fontSize = 14.sp,
-                  color = MaterialTheme.colorScheme.error,
-                  modifier = Modifier.padding(bottom = 8.dp),
-                )
-              } else if (calculator.packageWeight == null) {
-                Text(
-                  text = "Enter package weight above to use this method",
-                  fontSize = 14.sp,
-                  color = MaterialTheme.colorScheme.error,
-                  modifier = Modifier.padding(bottom = 8.dp),
-                )
-              }
+            // Method 2: Package Division
+            Text(
+              text = "Package Division",
+              fontSize = 14.sp,
+              fontWeight = FontWeight.Medium,
+              textAlign = TextAlign.Center,
+              modifier = Modifier.fillMaxWidth(),
+            )
 
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.Center,
+            ) {
               OutlinedTextField(
                 value = totalPortions,
                 onValueChange = { totalPortions = filterNumericInput(it) },
@@ -241,26 +457,43 @@ fun FatRobinApp() {
                   keyboardType = KeyboardType.Decimal,
                   imeAction = ImeAction.Done,
                 ),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                  .fillMaxWidth(0.8f)
+                  .onGloballyPositioned { coordinates ->
+                    // Get position relative to the Box (Canvas parent)
+                    var currentParent = coordinates.parentCoordinates
+                    // Go up the hierarchy: TextField -> Row -> Column -> Box
+                    repeat(4) {
+                      currentParent = currentParent?.parentCoordinates
+                    }
+                    if (currentParent != null) {
+                      val fieldPosition = currentParent.localPositionOf(coordinates, Offset.Zero)
+
+                      // Calculate connection points with proportional tuning offset
+                      val fieldCenterY = fieldPosition.y + (coordinates.size.height / 2f)
+                      val proportionalOffset = coordinates.size.height * CONNECTION_VERTICAL_OFFSET_FRACTION
+                      val adjustedY = fieldCenterY + proportionalOffset
+                      // Left and right connection points for dual-input field
+                      totalPortionsConnectionPoint = Offset(fieldPosition.x, adjustedY)
+                      val rightX = fieldPosition.x + coordinates.size.width
+                      totalPortionsRightConnectionPoint = Offset(rightX, adjustedY)
+                    }
+                  },
               )
-            },
-          )
+            }
 
-          // Method 3: Food Units
-          MethodCard(
-            modifier = Modifier.fillMaxWidth(),
-            title = "Food Units",
-            isActive = calculator.fatPer100g != null && calculator.effectiveUnitWeight != null,
-            content = {
-              if (calculator.fatPer100g == null) {
-                Text(
-                  text = "Enter fat per 100g above to use this method",
-                  fontSize = 14.sp,
-                  color = MaterialTheme.colorScheme.error,
-                  modifier = Modifier.padding(bottom = 8.dp),
-                )
-              }
+            // Method 3: Food Units
+            Text(
+              text = "Food Units",
+              fontSize = 14.sp,
+              fontWeight = FontWeight.Medium,
+              textAlign = TextAlign.Center,
+              modifier = Modifier.fillMaxWidth(),
+            )
 
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+            ) {
               OutlinedTextField(
                 value = weightPerFoodUnit,
                 onValueChange = { newValue ->
@@ -280,32 +513,41 @@ fun FatRobinApp() {
                   keyboardType = KeyboardType.Decimal,
                   imeAction = ImeAction.Done,
                 ),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                  .fillMaxWidth(0.8f)
+                  .onGloballyPositioned { coordinates ->
+                    // Get position relative to the Box (Canvas parent)
+                    var currentParent = coordinates.parentCoordinates
+                    // Go up the hierarchy: TextField -> Row -> Column -> Box
+                    repeat(4) {
+                      currentParent = currentParent?.parentCoordinates
+                    }
+                    if (currentParent != null) {
+                      val fieldPosition = currentParent.localPositionOf(coordinates, Offset.Zero)
+
+                      // Calculate connection point with proportional tuning offset
+                      val fieldCenterY = fieldPosition.y + (coordinates.size.height / 2f)
+                      val proportionalOffset = coordinates.size.height * CONNECTION_VERTICAL_OFFSET_FRACTION
+                      val adjustedY = fieldCenterY + proportionalOffset
+                      // Left edge for connection
+                      weightPerFoodUnitConnectionPoint = Offset(fieldPosition.x, adjustedY)
+                    }
+                  },
               )
+            }
 
-              Text(
-                text = "OR specify total count:",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 8.dp),
-              )
+            Text(
+              text = "— OR —",
+              fontSize = 14.sp,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              modifier = Modifier.fillMaxWidth(),
+              textAlign = TextAlign.Center,
+            )
 
-              if (calculator.fatPer100g == null) {
-                Text(
-                  text = "Enter fat per 100g above to use this field",
-                  fontSize = 14.sp,
-                  color = MaterialTheme.colorScheme.error,
-                  modifier = Modifier.padding(bottom = 8.dp),
-                )
-              } else if (calculator.packageWeight == null) {
-                Text(
-                  text = "Enter package weight above to use this field",
-                  fontSize = 14.sp,
-                  color = MaterialTheme.colorScheme.error,
-                  modifier = Modifier.padding(bottom = 8.dp),
-                )
-              }
-
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.Center,
+            ) {
               OutlinedTextField(
                 value = totalFoodUnits,
                 onValueChange = { newValue ->
@@ -325,52 +567,33 @@ fun FatRobinApp() {
                   keyboardType = KeyboardType.Decimal,
                   imeAction = ImeAction.Done,
                 ),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                  .fillMaxWidth(0.8f)
+                  .onGloballyPositioned { coordinates ->
+                    // Get position relative to the Box (Canvas parent)
+                    var currentParent = coordinates.parentCoordinates
+                    // Go up the hierarchy: TextField -> Row -> Column -> Box
+                    repeat(4) {
+                      currentParent = currentParent?.parentCoordinates
+                    }
+                    if (currentParent != null) {
+                      val fieldPosition = currentParent.localPositionOf(coordinates, Offset.Zero)
+
+                      // Calculate connection points with proportional tuning offset
+                      val fieldCenterY = fieldPosition.y + (coordinates.size.height / 2f)
+                      val proportionalOffset = coordinates.size.height * CONNECTION_VERTICAL_OFFSET_FRACTION
+                      val adjustedY = fieldCenterY + proportionalOffset
+                      // Left and right connection points for dual-input field
+                      totalFoodUnitsConnectionPoint = Offset(fieldPosition.x, adjustedY)
+                      val rightX = fieldPosition.x + coordinates.size.width
+                      totalFoodUnitsRightConnectionPoint = Offset(rightX, adjustedY)
+                    }
+                  },
               )
-            },
-          )
+            }
+          }
         }
       }
-    }
-  }
-}
-
-@Composable
-fun MethodCard(
-  modifier: Modifier = Modifier,
-  title: String,
-  isActive: Boolean,
-  content: @Composable () -> Unit,
-) {
-  Card(
-    modifier = modifier,
-    elevation = CardDefaults.cardElevation(defaultElevation = if (isActive) 4.dp else 1.dp),
-    colors = CardDefaults.cardColors(
-      containerColor = if (isActive) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-      } else {
-        MaterialTheme.colorScheme.surface
-      },
-    ),
-    border = if (isActive) {
-      BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
-    } else {
-      null
-    },
-  ) {
-    Column(
-      modifier = Modifier.padding(12.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      Text(
-        text = title,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Medium,
-        color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth(),
-      )
-      content()
     }
   }
 }
