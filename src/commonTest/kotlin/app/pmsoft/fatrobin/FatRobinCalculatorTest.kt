@@ -70,7 +70,7 @@ class FatRobinCalculatorTest {
     calculator.fatPer100g = 10.0
     calculator.unitWeight = 25.0
 
-    val result = calculator.getFoodUnitPills(pillDoses = pillDoses)!!
+    val result = calculator.getPillsPerFoodUnit(pillDoses = pillDoses)!!
 
     // Each unit: 25g with 2.5g fat = 5000 units needed
     assertEquals(1, result[0]) // 10k pill: 5000/10000 = 0.5, rounds up to 1
@@ -84,7 +84,7 @@ class FatRobinCalculatorTest {
     calculator.packageWeight = 120.0
     calculator.foodUnits = 4.0
 
-    val result = calculator.getFoodUnitPills(pillDoses = pillDoses)!!
+    val result = calculator.getPillsPerFoodUnit(pillDoses = pillDoses)!!
 
     // Each unit: 30g with 3g fat = 6000 units needed
     assertEquals(1, result[0]) // 10k pill: 6000/10000 = 0.6, rounds up to 1
@@ -95,13 +95,13 @@ class FatRobinCalculatorTest {
   fun `should calculate food units per pill correctly`() {
     val calculator = freshCalculator()
     calculator.fatPer100g = 10.0
-    calculator.unitWeight = 25.0
+    calculator.unitWeight = 20.0
 
     val result = calculator.getFoodUnitsPerPill(pillDoses = pillDoses)!!
 
-    // Each unit: 25g with 2.5g fat = 5000 units needed
-    assertEquals(2.0, result[0]) // 10k pill covers: 10000/5000 = 2 units
-    assertEquals(7.0, result[1]) // 35k pill covers: 35000/5000 = 7 units
+    // Each unit: 20g with 2g fat = 4000 units needed
+    assertEquals(2, result[0]) // 10k pill covers: 10000/4000 = 2 units (floored)
+    assertEquals(8, result[1]) // 35k pill covers: 35000/4000 = 8 units (floored)
   }
 
   @Test
@@ -131,7 +131,7 @@ class FatRobinCalculatorTest {
     calculator.fatPer100g = 10.0
     // Missing unitWeight or calculated weight
 
-    val result = calculator.getFoodUnitPills(pillDoses = pillDoses)
+    val result = calculator.getPillsPerFoodUnit(pillDoses = pillDoses)
     assertNull(result)
   }
 

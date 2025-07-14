@@ -127,7 +127,7 @@ class FatRobinCalculator {
    * @param pillDoses List of pill doses in units
    * @return List of pills needed per food unit, or null if insufficient input
    */
-  fun getFoodUnitPills(dosingFactor: Double = 2000.0, pillDoses: List<Int>): List<Int>? {
+  fun getPillsPerFoodUnit(dosingFactor: Double = 2000.0, pillDoses: List<Int>): List<Int>? {
     val fat = fatPer100g ?: return null
     val weight = effectiveUnitWeight ?: return null
 
@@ -145,7 +145,7 @@ class FatRobinCalculator {
    * @param pillDoses List of pill doses in units
    * @return List of food units covered per pill, or null if insufficient input
    */
-  fun getFoodUnitsPerPill(dosingFactor: Double = 2000.0, pillDoses: List<Int>): List<Double>? {
+  fun getFoodUnitsPerPill(dosingFactor: Double = 2000.0, pillDoses: List<Int>): List<Int>? {
     val fat = fatPer100g ?: return null
     val weight = effectiveUnitWeight ?: return null
 
@@ -153,7 +153,7 @@ class FatRobinCalculator {
     val unitsNeeded = fatInUnit * dosingFactor
 
     return pillDoses.map { dose ->
-      dose / unitsNeeded
+      floor(dose / unitsNeeded).toInt()
     }
   }
 

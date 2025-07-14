@@ -75,7 +75,7 @@ fun FatRobinApp() {
 
   fun filterNumericInput(input: String): String {
     return input.filter { char ->
-      char.isDigit() || char == '.' || char == ',' || char == '-'
+      char.isDigit() || char == '.' || char == ','
     }
   }
 

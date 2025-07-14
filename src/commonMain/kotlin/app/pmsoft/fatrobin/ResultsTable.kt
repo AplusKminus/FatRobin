@@ -61,34 +61,30 @@ fun ResultsTable(
           ) {
             Text(pillType, modifier = Modifier.weight(0.6f), fontSize = 12.sp, fontWeight = FontWeight.Medium)
 
-            // Portion pills - show any available calculation (prefer direct weight, then sub-package, then food unit)
+            // Portion pills
             val portionPills = calculator.getPortionPills(pillDoses = pillDoses)?.get(index)
-              ?: calculator.getSubPackagePills(pillDoses = pillDoses)?.get(index)
-              ?: calculator.getFoodUnitPills(pillDoses = pillDoses)?.get(index)
             Text(portionPills?.let { "$it 💊" } ?: "–", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
 
             // Grams per pill
             val gramsPerPill = calculator.getGramsPerPill(pillDoses = pillDoses)?.get(index)
             Text(gramsPerPill?.toInt()?.let { "${it}g" } ?: "–", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
 
-            // Sub-package pills - show if package division is available
+            // Sub-package pills
             val subPackagePills = calculator.getSubPackagePills(pillDoses = pillDoses)?.get(index)
             Text(subPackagePills?.let { "$it 💊" } ?: "–", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
 
-            // Package pills (always show)
+            // Package pills
             val packagePills = calculator.getPackagePills(pillDoses = pillDoses)?.get(index)
             Text(packagePills?.let { "$it 💊" } ?: "–", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
 
-            // Food unit pills (always show)
-            val foodUnitPills = calculator.getFoodUnitPills(pillDoses = pillDoses)?.get(index)
+            // Food units per pill or pills per food unit
+            val pillsPerFoodUnit = calculator.getPillsPerFoodUnit(pillDoses = pillDoses)?.get(index)
             val foodUnitsPerPill = calculator.getFoodUnitsPerPill(pillDoses = pillDoses)?.get(index)
 
             val foodText = when {
-              foodUnitPills == null -> "–"
-              foodUnitPills > 1 -> "$foodUnitPills 💊"
-              foodUnitPills == 1 -> "1 💊"
-              foodUnitsPerPill != null -> "${foodUnitsPerPill.toInt()} 🍎"
-              else -> "–"
+              pillsPerFoodUnit == null || foodUnitsPerPill == null -> "–"
+              foodUnitsPerPill > 1 -> "$foodUnitsPerPill 🍎"
+              else -> "$pillsPerFoodUnit 💊"
             }
             Text(foodText, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
           }
