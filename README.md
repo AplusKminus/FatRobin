@@ -21,18 +21,18 @@ Use **any** of these. Results appear as you enter data:
 2. **Package Division**  
    *“This package weighs 800g and has 4 servings. What’s the dose per serving?”*
 
-3. **Food Units**  
+3. **Food Items**  
    *“I eat 1 slice at a time. What's the dose per slice?”*  
-   You can enter weight per unit, or total units in a package—FatRobin auto-completes the rest.
+   You can enter weight per food item, or total food items in a package—FatRobin auto-completes the rest.
 
 ## 💊 Results Table
 
 No dropdowns. No extra taps. You get an instant table:
 
-| Pill Type | Per Portion | g/Fat per Pill | Per Sub-Unit | Per Package | Per Food Unit |
-|-----------|-------------|----------------|---------------|-------------|------------|
-| 10k       | 2 💊        | 25g            | 1 💊          | 6 💊        | 3 💊       |
-| 35k       | 1 💊        | 87g            | 1 💊          | 2 💊        | 3 🍎       |
+| Pill Type | Per Portion | g/Fat per Pill | Per Sub-Unit | Per Package | Per Food Item |
+|-----------|-------------|----------------|---------------|-------------|---------------|
+| 10k       | 2 💊        | 25g            | 1 💊          | 6 💊        | 3 💊          |
+| 35k       | 1 💊        | 87g            | 1 💊          | 2 💊        | 3 🍎          |
 
 (Real-time values shown in the app)
 
@@ -45,7 +45,7 @@ No dropdowns. No extra taps. You get an instant table:
 
 ## 🛠️ Features
 
-- 📊 Multiple input methods (weight, servings, units)
+- 📊 Multiple input methods (weight, servings, food items)
 - 💡 Smart validation & autofill between methods
 - 💊 Dual pill size support (10k, 35k)
 - ⚙️ Works offline, no logins or internet needed

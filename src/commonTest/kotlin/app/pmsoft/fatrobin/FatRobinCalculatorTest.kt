@@ -65,43 +65,43 @@ class FatRobinCalculatorTest {
   }
 
   @Test
-  fun `should calculate food unit pills correctly with direct unit weight`() {
+  fun `should calculate food item pills correctly with direct food item weight`() {
     val calculator = freshCalculator()
     calculator.fatPer100g = 10.0
-    calculator.unitWeight = 25.0
+    calculator.foodItemWeight = 25.0
 
-    val result = calculator.getPillsPerFoodUnit(pillDoses = pillDoses)!!
+    val result = calculator.getPillsPerFoodItem(pillDoses = pillDoses)!!
 
-    // Each unit: 25g with 2.5g fat = 5000 units needed
+    // Each item: 25g with 2.5g fat = 5000 units needed
     assertEquals(1, result[0]) // 10k pill: 5000/10000 = 0.5, rounds up to 1
     assertEquals(1, result[1]) // 35k pill: 5000/35000 = 0.14, rounds up to 1
   }
 
   @Test
-  fun `should calculate food unit pills correctly with calculated unit weight`() {
+  fun `should calculate food item pills correctly with calculated food item weight`() {
     val calculator = freshCalculator()
     calculator.fatPer100g = 10.0
     calculator.packageWeight = 120.0
-    calculator.foodUnits = 4.0
+    calculator.foodItems = 4.0
 
-    val result = calculator.getPillsPerFoodUnit(pillDoses = pillDoses)!!
+    val result = calculator.getPillsPerFoodItem(pillDoses = pillDoses)!!
 
-    // Each unit: 30g with 3g fat = 6000 units needed
+    // Each item: 30g with 3g fat = 6000 units needed
     assertEquals(1, result[0]) // 10k pill: 6000/10000 = 0.6, rounds up to 1
     assertEquals(1, result[1]) // 35k pill: 6000/35000 = 0.17, rounds up to 1
   }
 
   @Test
-  fun `should calculate food units per pill correctly`() {
+  fun `should calculate food items per pill correctly`() {
     val calculator = freshCalculator()
     calculator.fatPer100g = 10.0
-    calculator.unitWeight = 20.0
+    calculator.foodItemWeight = 20.0
 
-    val result = calculator.getFoodUnitsPerPill(pillDoses = pillDoses)!!
+    val result = calculator.getFoodItemsPerPill(pillDoses = pillDoses)!!
 
-    // Each unit: 20g with 2g fat = 4000 units needed
-    assertEquals(2, result[0]) // 10k pill covers: 10000/4000 = 2 units (floored)
-    assertEquals(8, result[1]) // 35k pill covers: 35000/4000 = 8 units (floored)
+    // Each item: 20g with 2g fat = 4000 units needed
+    assertEquals(2, result[0]) // 10k pill covers: 10000/4000 = 2 items (floored)
+    assertEquals(8, result[1]) // 35k pill covers: 35000/4000 = 8 items (floored)
   }
 
   @Test
@@ -126,12 +126,12 @@ class FatRobinCalculatorTest {
   }
 
   @Test
-  fun `should return null when insufficient input for food unit pills`() {
+  fun `should return null when insufficient input for pills per food item`() {
     val calculator = freshCalculator()
     calculator.fatPer100g = 10.0
-    // Missing unitWeight or calculated weight
+    // Missing foodItemWeight or calculated weight
 
-    val result = calculator.getPillsPerFoodUnit(pillDoses = pillDoses)
+    val result = calculator.getPillsPerFoodItem(pillDoses = pillDoses)
     assertNull(result)
   }
 
@@ -191,19 +191,19 @@ class FatRobinCalculatorTest {
     val calculator = freshCalculator()
     // First test calculated weight
     calculator.packageWeight = 120.0
-    calculator.foodUnits = 4.0
+    calculator.foodItems = 4.0
 
-    assertEquals(30.0, calculator.effectiveUnitWeight)
+    assertEquals(30.0, calculator.effectiveFoodItemWeight)
 
-    // Setting unitWeight auto-calculates foodUnits when packageWeight is available
-    calculator.unitWeight = 25.0
-    assertEquals(4.8, calculator.foodUnits) // Auto-calculated: 120.0 / 25.0
-    assertEquals(25.0, calculator.effectiveUnitWeight) // Uses calculated weight from new foodUnits
+    // Setting foodItemWeight auto-calculates foodItems when packageWeight is available
+    calculator.foodItemWeight = 25.0
+    assertEquals(4.8, calculator.foodItems) // Auto-calculated: 120.0 / 25.0
+    assertEquals(25.0, calculator.effectiveFoodItemWeight) // Uses calculated weight from new foodItems
 
-    // Test direct unit weight when no calculation possible
+    // Test direct item weight when no calculation possible
     calculator.clear()
-    calculator.unitWeight = 25.0
-    assertEquals(25.0, calculator.effectiveUnitWeight)
+    calculator.foodItemWeight = 25.0
+    assertEquals(25.0, calculator.effectiveFoodItemWeight)
   }
 
   @Test
@@ -216,46 +216,46 @@ class FatRobinCalculatorTest {
   }
 
   @Test
-  fun `should auto-calculate foodUnits when unitWeight is set`() {
+  fun `should auto-calculate foodItems when foodItemWeight is set`() {
     val calculator = freshCalculator()
     calculator.packageWeight = 120.0
-    calculator.unitWeight = 30.0
+    calculator.foodItemWeight = 30.0
 
-    assertEquals(4.0, calculator.foodUnits) // Auto-calculated: 120.0 / 30.0
+    assertEquals(4.0, calculator.foodItems) // Auto-calculated: 120.0 / 30.0
   }
 
   @Test
-  fun `should auto-calculate unitWeight when foodUnits is set`() {
+  fun `should auto-calculate foodItemWeight when foodItems is set`() {
     val calculator = freshCalculator()
     calculator.packageWeight = 120.0
-    calculator.foodUnits = 4.0
+    calculator.foodItems = 4.0
 
-    assertEquals(30.0, calculator.unitWeight) // Auto-calculated: 120.0 / 4.0
+    assertEquals(30.0, calculator.foodItemWeight) // Auto-calculated: 120.0 / 4.0
   }
 
   @Test
   fun `should not auto-calculate when packageWeight is null`() {
     val calculator = freshCalculator()
-    calculator.unitWeight = 30.0
+    calculator.foodItemWeight = 30.0
 
-    assertNull(calculator.foodUnits) // No auto-calculation without packageWeight
+    assertNull(calculator.foodItems) // No auto-calculation without packageWeight
 
-    calculator.foodUnits = 4.0
+    calculator.foodItems = 4.0
 
-    assertEquals(30.0, calculator.unitWeight) // Original value preserved, no auto-calculation
+    assertEquals(30.0, calculator.foodItemWeight) // Original value preserved, no auto-calculation
   }
 
   @Test
   fun `should not auto-calculate when values are zero or negative`() {
     val calculator = freshCalculator()
     calculator.packageWeight = 120.0
-    calculator.unitWeight = 0.0
+    calculator.foodItemWeight = 0.0
 
-    assertNull(calculator.foodUnits)
+    assertNull(calculator.foodItems)
 
-    calculator.unitWeight = -5.0
+    calculator.foodItemWeight = -5.0
 
-    assertNull(calculator.foodUnits)
+    assertNull(calculator.foodItems)
   }
 
   @Test
@@ -268,7 +268,7 @@ class FatRobinCalculatorTest {
     val result = calculator.getSubPackagePills(pillDoses = pillDoses)
 
     assertNotNull(result)
-    assertEquals(1, result!![0]) // 10k pill
+    assertEquals(1, result[0]) // 10k pill
     assertEquals(1, result[1]) // 35k pill
   }
 
@@ -305,7 +305,7 @@ class FatRobinCalculatorTest {
     val result = calculator.getGramsPerPill(pillDoses = pillDoses)
 
     assertNotNull(result)
-    assertEquals(50.0, result!![0]) // 10k pill covers 50g
+    assertEquals(50.0, result[0]) // 10k pill covers 50g
     assertEquals(175.0, result[1]) // 35k pill covers 175g
   }
 }

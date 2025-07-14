@@ -77,14 +77,14 @@ fun ResultsTable(
             val packagePills = calculator.getPackagePills(pillDoses = pillDoses)?.get(index)
             Text(packagePills?.let { "$it 💊" } ?: "–", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
 
-            // Food units per pill or pills per food unit
-            val pillsPerFoodUnit = calculator.getPillsPerFoodUnit(pillDoses = pillDoses)?.get(index)
-            val foodUnitsPerPill = calculator.getFoodUnitsPerPill(pillDoses = pillDoses)?.get(index)
+            // Food items per pill or pills per food item
+            val pillsPerFoodItem = calculator.getPillsPerFoodItem(pillDoses = pillDoses)?.get(index)
+            val foodItemsPerPill = calculator.getFoodItemsPerPill(pillDoses = pillDoses)?.get(index)
 
             val foodText = when {
-              pillsPerFoodUnit == null || foodUnitsPerPill == null -> "–"
-              foodUnitsPerPill > 1 -> "$foodUnitsPerPill 🍎"
-              else -> "$pillsPerFoodUnit 💊"
+              pillsPerFoodItem == null || foodItemsPerPill == null -> "–"
+              foodItemsPerPill > 1 -> "$foodItemsPerPill 🍎"
+              else -> "$pillsPerFoodItem 💊"
             }
             Text(foodText, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontSize = 12.sp)
           }

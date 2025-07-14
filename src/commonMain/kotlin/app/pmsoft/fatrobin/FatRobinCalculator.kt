@@ -15,35 +15,35 @@ class FatRobinCalculator {
   var portions: Double? = null
 
   // Private backing fields for interdependent properties
-  private var _unitWeight: Double? = null
-  private var _foodUnits: Double? = null
+  private var _foodItemWeight: Double? = null
+  private var _foodItems: Double? = null
 
-  var unitWeight: Double?
-    get() = _unitWeight
+  var foodItemWeight: Double?
+    get() = _foodItemWeight
     set(value) {
-      _unitWeight = value
-      // Auto-calculate foodUnits if packageWeight is available
+      _foodItemWeight = value
+      // Auto-calculate foodItems if packageWeight is available
       if (value != null && value > 0 && packageWeight != null && packageWeight!! > 0) {
-        _foodUnits = packageWeight!! / value
+        _foodItems = packageWeight!! / value
       }
     }
 
-  var foodUnits: Double?
-    get() = _foodUnits
+  var foodItems: Double?
+    get() = _foodItems
     set(value) {
-      _foodUnits = value
-      // Auto-calculate unitWeight if packageWeight is available
+      _foodItems = value
+      // Auto-calculate foodItemWeight if packageWeight is available
       if (value != null && value > 0 && packageWeight != null && packageWeight!! > 0) {
-        _unitWeight = packageWeight!! / value
+        _foodItemWeight = packageWeight!! / value
       }
     }
 
   // Calculated properties
-  val effectiveUnitWeight: Double?
-    get() = if (packageWeight != null && foodUnits != null && foodUnits!! > 0) {
-      packageWeight!! / foodUnits!!
+  val effectiveFoodItemWeight: Double?
+    get() = if (packageWeight != null && foodItems != null && foodItems!! > 0) {
+      packageWeight!! / foodItems!!
     } else {
-      unitWeight
+      foodItemWeight
     }
 
   val portionWeightFromPackage: Double?
@@ -122,17 +122,17 @@ class FatRobinCalculator {
   }
 
   /**
-   * Get pills needed per food unit
+   * Get pills needed per food item
    * @param dosingFactor Units per gram of fat (default 2000)
    * @param pillDoses List of pill doses in units
-   * @return List of pills needed per food unit, or null if insufficient input
+   * @return List of pills needed per food item, or null if insufficient input
    */
-  fun getPillsPerFoodUnit(dosingFactor: Double = 2000.0, pillDoses: List<Int>): List<Int>? {
+  fun getPillsPerFoodItem(dosingFactor: Double = 2000.0, pillDoses: List<Int>): List<Int>? {
     val fat = fatPer100g ?: return null
-    val weight = effectiveUnitWeight ?: return null
+    val weight = effectiveFoodItemWeight ?: return null
 
-    val fatInUnit = (fat / 100.0) * weight
-    val unitsNeeded = fatInUnit * dosingFactor
+    val fatInItem = (fat / 100.0) * weight
+    val unitsNeeded = fatInItem * dosingFactor
 
     return pillDoses.map { dose ->
       ceil(unitsNeeded / dose).toInt()
@@ -140,17 +140,17 @@ class FatRobinCalculator {
   }
 
   /**
-   * Get food units covered by each pill (inverse of getFoodUnitPills for ratios < 1)
+   * Get food items covered by each pill (inverse of getPillsPerFoodItem for ratios < 1)
    * @param dosingFactor Units per gram of fat (default 2000)
    * @param pillDoses List of pill doses in units
-   * @return List of food units covered per pill, or null if insufficient input
+   * @return List of food items covered per pill, or null if insufficient input
    */
-  fun getFoodUnitsPerPill(dosingFactor: Double = 2000.0, pillDoses: List<Int>): List<Int>? {
+  fun getFoodItemsPerPill(dosingFactor: Double = 2000.0, pillDoses: List<Int>): List<Int>? {
     val fat = fatPer100g ?: return null
-    val weight = effectiveUnitWeight ?: return null
+    val weight = effectiveFoodItemWeight ?: return null
 
-    val fatInUnit = (fat / 100.0) * weight
-    val unitsNeeded = fatInUnit * dosingFactor
+    val fatInItem = (fat / 100.0) * weight
+    val unitsNeeded = fatInItem * dosingFactor
 
     return pillDoses.map { dose ->
       floor(dose / unitsNeeded).toInt()
@@ -170,10 +170,10 @@ class FatRobinCalculator {
     get() = fatPer100g != null && packageWeight != null && portions != null && portions!! > 0
 
   /**
-   * Check if food unit calculation is possible
+   * Check if food item calculation is possible
    */
-  val hasFoodUnit: Boolean
-    get() = fatPer100g != null && effectiveUnitWeight != null
+  val hasFoodItem: Boolean
+    get() = fatPer100g != null && effectiveFoodItemWeight != null
 
   /**
    * Check if package calculation is possible
@@ -190,12 +190,12 @@ class FatRobinCalculator {
     }
 
   /**
-   * Get description for food unit method
+   * Get description for food item method
    */
-  val foodUnitDescription: String?
-    get() = effectiveUnitWeight?.let { weight ->
-      val source = if (packageWeight != null && foodUnits != null && foodUnits!! > 0) "calculated" else "direct"
-      "Per food unit (${String.format("%.2f", weight)}g each, $source)"
+  val foodItemDescription: String?
+    get() = effectiveFoodItemWeight?.let { weight ->
+      val source = if (packageWeight != null && foodItems != null && foodItems!! > 0) "calculated" else "direct"
+      "Per food item (${String.format("%.2f", weight)}g each, $source)"
     }
 
   /**
@@ -214,7 +214,7 @@ class FatRobinCalculator {
     directWeight = null
     packageWeight = null
     portions = null
-    _unitWeight = null
-    _foodUnits = null
+    _foodItemWeight = null
+    _foodItems = null
   }
 }

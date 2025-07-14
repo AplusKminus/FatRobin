@@ -55,11 +55,11 @@ fun FatRobinApp() {
   var totalPackageWeight by remember { mutableStateOf("") }
   var totalPortions by remember { mutableStateOf("") }
 
-  // Food unit method - direct
-  var weightPerFoodUnit by remember { mutableStateOf("") }
+  // Food item method - direct
+  var weightPerFoodItem by remember { mutableStateOf("") }
 
-  // Food unit method - calculated
-  var totalFoodUnits by remember { mutableStateOf("") }
+  // Food item method - calculated
+  var totalFoodItems by remember { mutableStateOf("") }
 
   val fatFieldFocusRequester = remember { FocusRequester() }
 
@@ -69,9 +69,9 @@ fun FatRobinApp() {
   var portionWeightConnectionPoint by remember { mutableStateOf(Offset.Zero) }
   var totalPortionsConnectionPoint by remember { mutableStateOf(Offset.Zero) }
   var totalPortionsRightConnectionPoint by remember { mutableStateOf(Offset.Zero) }
-  var weightPerFoodUnitConnectionPoint by remember { mutableStateOf(Offset.Zero) }
-  var totalFoodUnitsConnectionPoint by remember { mutableStateOf(Offset.Zero) }
-  var totalFoodUnitsRightConnectionPoint by remember { mutableStateOf(Offset.Zero) }
+  var weightPerFoodItemConnectionPoint by remember { mutableStateOf(Offset.Zero) }
+  var totalFoodItemsConnectionPoint by remember { mutableStateOf(Offset.Zero) }
+  var totalFoodItemsRightConnectionPoint by remember { mutableStateOf(Offset.Zero) }
 
   fun filterNumericInput(input: String): String {
     return input.filter { char ->
@@ -80,14 +80,14 @@ fun FatRobinApp() {
   }
 
   // Create calculator with current input values on every composition
-  val calculator = remember(fatPer100g, portionWeight, totalPackageWeight, totalPortions, weightPerFoodUnit, totalFoodUnits) {
+  val calculator = remember(fatPer100g, portionWeight, totalPackageWeight, totalPortions, weightPerFoodItem, totalFoodItems) {
     FatRobinCalculator().apply {
       this.fatPer100g = fatPer100g.toDoubleOrNull()?.takeIf { it > 0 }
       this.directWeight = portionWeight.toDoubleOrNull()?.takeIf { it > 0 }
       this.packageWeight = totalPackageWeight.toDoubleOrNull()?.takeIf { it > 0 }
       this.portions = totalPortions.toDoubleOrNull()?.takeIf { it > 0 }
-      this.unitWeight = weightPerFoodUnit.toDoubleOrNull()?.takeIf { it > 0 }
-      this.foodUnits = totalFoodUnits.toDoubleOrNull()?.takeIf { it > 0 }
+      this.foodItemWeight = weightPerFoodItem.toDoubleOrNull()?.takeIf { it > 0 }
+      this.foodItems = totalFoodItems.toDoubleOrNull()?.takeIf { it > 0 }
     }
   }
 
@@ -99,8 +99,8 @@ fun FatRobinApp() {
     portionWeight = ""
     totalPackageWeight = ""
     totalPortions = ""
-    weightPerFoodUnit = ""
-    totalFoodUnits = ""
+    weightPerFoodItem = ""
+    totalFoodItems = ""
     fatFieldFocusRequester.requestFocus()
   }
 
@@ -137,7 +137,7 @@ fun FatRobinApp() {
           onClick = { clearAll() },
           enabled = fatPer100g.isNotEmpty() || portionWeight.isNotEmpty() ||
             totalPackageWeight.isNotEmpty() || totalPortions.isNotEmpty() ||
-            weightPerFoodUnit.isNotEmpty() || totalFoodUnits.isNotEmpty(),
+            weightPerFoodItem.isNotEmpty() || totalFoodItems.isNotEmpty(),
           modifier = Modifier.fillMaxWidth(),
         ) {
           Text("Clear All")
@@ -239,28 +239,28 @@ fun FatRobinApp() {
             )
           }
 
-          // Weight per food unit connection (left side, to 16dp from left edge)
-          if (weightPerFoodUnitConnectionPoint != Offset.Zero) {
+          // Weight per food item connection (left side, to 16dp from left edge)
+          if (weightPerFoodItemConnectionPoint != Offset.Zero) {
             val targetX = 16.dp.toPx()
 
             drawLine(
               color = leftBranchColor,
-              start = weightPerFoodUnitConnectionPoint,
-              end = Offset(targetX, weightPerFoodUnitConnectionPoint.y),
+              start = weightPerFoodItemConnectionPoint,
+              end = Offset(targetX, weightPerFoodItemConnectionPoint.y),
               strokeWidth = 3.dp.toPx(),
               cap = StrokeCap.Round,
             )
           }
 
-          // Total food units connections (needs both fat and package weight)
-          if (totalFoodUnitsConnectionPoint != Offset.Zero && totalFoodUnitsRightConnectionPoint != Offset.Zero) {
+          // Total food items connections (needs both fat and package weight)
+          if (totalFoodItemsConnectionPoint != Offset.Zero && totalFoodItemsRightConnectionPoint != Offset.Zero) {
             // Left connection (from fat branch)
             val leftTargetX = 16.dp.toPx()
 
             drawLine(
               color = leftBranchColor,
-              start = totalFoodUnitsConnectionPoint,
-              end = Offset(leftTargetX, totalFoodUnitsConnectionPoint.y),
+              start = totalFoodItemsConnectionPoint,
+              end = Offset(leftTargetX, totalFoodItemsConnectionPoint.y),
               strokeWidth = 3.dp.toPx(),
               cap = StrokeCap.Round,
             )
@@ -270,8 +270,8 @@ fun FatRobinApp() {
 
             drawLine(
               color = rightBranchColor,
-              start = totalFoodUnitsRightConnectionPoint,
-              end = Offset(rightTargetX, totalFoodUnitsRightConnectionPoint.y),
+              start = totalFoodItemsRightConnectionPoint,
+              end = Offset(rightTargetX, totalFoodItemsRightConnectionPoint.y),
               strokeWidth = 3.dp.toPx(),
               cap = StrokeCap.Round,
             )
@@ -279,11 +279,11 @@ fun FatRobinApp() {
 
           // Vertical connection lines
 
-          // Left vertical line: from fat field to total food units (via all left-connected fields)
-          if (fatFieldConnectionPoint != Offset.Zero && totalFoodUnitsConnectionPoint != Offset.Zero) {
+          // Left vertical line: from fat field to total food items (via all left-connected fields)
+          if (fatFieldConnectionPoint != Offset.Zero && totalFoodItemsConnectionPoint != Offset.Zero) {
             val leftX = 16.dp.toPx()
             val startY = fatFieldConnectionPoint.y
-            val endY = totalFoodUnitsConnectionPoint.y
+            val endY = totalFoodItemsConnectionPoint.y
 
             drawLine(
               color = leftBranchColor,
@@ -294,11 +294,11 @@ fun FatRobinApp() {
             )
           }
 
-          // Right vertical line: from package weight to total food units
-          if (packageWeightConnectionPoint != Offset.Zero && totalFoodUnitsRightConnectionPoint != Offset.Zero) {
+          // Right vertical line: from package weight to total food items
+          if (packageWeightConnectionPoint != Offset.Zero && totalFoodItemsRightConnectionPoint != Offset.Zero) {
             val rightX = size.width - 16.dp.toPx()
             val startY = packageWeightConnectionPoint.y
-            val endY = totalFoodUnitsRightConnectionPoint.y
+            val endY = totalFoodItemsRightConnectionPoint.y
 
             drawLine(
               color = rightBranchColor,
@@ -488,9 +488,9 @@ fun FatRobinApp() {
             )
           }
 
-          // Method 3: Food Units
+          // Method 3: Food Items
           Text(
-            text = "Food Units",
+            text = "Food Items",
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
@@ -501,19 +501,19 @@ fun FatRobinApp() {
             modifier = Modifier.fillMaxWidth(),
           ) {
             OutlinedTextField(
-              value = weightPerFoodUnit,
+              value = weightPerFoodItem,
               onValueChange = { newValue ->
                 val filtered = filterNumericInput(newValue)
-                weightPerFoodUnit = filtered
+                weightPerFoodItem = filtered
 
                 // Update calculator and sync UI if auto-calculated
                 val weightValue = filtered.toDoubleOrNull()?.takeIf { it > 0 }
-                calculator.unitWeight = weightValue
-                calculator.foodUnits?.let { calculatedUnits ->
-                  totalFoodUnits = String.format("%.1f", calculatedUnits)
+                calculator.foodItemWeight = weightValue
+                calculator.foodItems?.let { calculatedItems ->
+                  totalFoodItems = String.format("%.1f", calculatedItems)
                 }
               },
-              label = { Text("Weight per food unit (g)") },
+              label = { Text("Weight per food item (g)") },
               enabled = calculator.fatPer100g != null,
               keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal,
@@ -536,7 +536,7 @@ fun FatRobinApp() {
                     val proportionalOffset = coordinates.size.height * CONNECTION_VERTICAL_OFFSET_FRACTION
                     val adjustedY = fieldCenterY + proportionalOffset
                     // Left edge for connection
-                    weightPerFoodUnitConnectionPoint = Offset(fieldPosition.x, adjustedY)
+                    weightPerFoodItemConnectionPoint = Offset(fieldPosition.x, adjustedY)
                   }
                 },
             )
@@ -555,19 +555,19 @@ fun FatRobinApp() {
             horizontalArrangement = Arrangement.Center,
           ) {
             OutlinedTextField(
-              value = totalFoodUnits,
+              value = totalFoodItems,
               onValueChange = { newValue ->
                 val filtered = filterNumericInput(newValue)
-                totalFoodUnits = filtered
+                totalFoodItems = filtered
 
                 // Update calculator and sync UI if auto-calculated
-                val unitsValue = filtered.toDoubleOrNull()?.takeIf { it > 0 }
-                calculator.foodUnits = unitsValue
-                calculator.unitWeight?.let { calculatedWeight ->
-                  weightPerFoodUnit = String.format("%.2f", calculatedWeight)
+                val itemsValue = filtered.toDoubleOrNull()?.takeIf { it > 0 }
+                calculator.foodItems = itemsValue
+                calculator.foodItemWeight?.let { calculatedWeight ->
+                  weightPerFoodItem = String.format("%.2f", calculatedWeight)
                 }
               },
-              label = { Text("Total food units in package") },
+              label = { Text("Total food items in package") },
               enabled = calculator.fatPer100g != null && calculator.packageWeight != null,
               keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal,
@@ -590,9 +590,9 @@ fun FatRobinApp() {
                     val proportionalOffset = coordinates.size.height * CONNECTION_VERTICAL_OFFSET_FRACTION
                     val adjustedY = fieldCenterY + proportionalOffset
                     // Left and right connection points for dual-input field
-                    totalFoodUnitsConnectionPoint = Offset(fieldPosition.x, adjustedY)
+                    totalFoodItemsConnectionPoint = Offset(fieldPosition.x, adjustedY)
                     val rightX = fieldPosition.x + coordinates.size.width
-                    totalFoodUnitsRightConnectionPoint = Offset(rightX, adjustedY)
+                    totalFoodItemsRightConnectionPoint = Offset(rightX, adjustedY)
                   }
                 },
             )
