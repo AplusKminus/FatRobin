@@ -11,16 +11,29 @@ Complete redesign of FatRobin with a new navigation-based architecture while pre
 
 ## New Architecture Vision
 
+### Data Structure
+
+- A `Product` is an `Ingredient`.
+- An `Ingredient` is a `Food`.
+- A `Recipe` is a `Food`.
+- A `Food` has fat/100g which is a positive float <= 100.
+- An `Ingredient` may have a positive float `packageWeight`.
+- A `Product` has a positive float `packageWeight`.
+- A `Product` may have a positive integer `foodItemCount`, from which a `foodItemWeight` (via the `packageWeight`) can be calculated.
+- A `Product` has a positive integer `noOfSubPackages` which defaults to 1.
+- A `Recipe` consists of ingredients associated with weights. The sum of these weights is the `weight` of the `Recipe`.
+- A `Recipe` has a positive integer `portionCount` which defaults to 1.
+
 ### Navigation Structure
 **Bottom Navigation Bar** with 5 tabs:
-- 🔍 **Search** - Search stored products/recipes, edit existing items
+- 🔍 **Search** - Search stored products/ingredients/recipes, edit existing items
 - ➕ **Create** - Add new products via modal bottom sheet  
 - 📱 **Scan** - Barcode scanner for product lookup
 - 📝 **Recipe** - Recipe builder and manager
 - ⚙️ **Settings** - App configuration
 
 ### Main Screen Behavior
-- **Default view**: Two lists - Favorites (user-configurable, orderable) and Recently Used
+- **Default view**: Two lists - Favorites (user-configurable, orderable) top and Recently Used (excluding any favorites) below 
 - **Item selection**: Auto-navigate to "portion mode" (main calculation screen)
 - **Unsaved products**: Show save button when in portion mode with unsaved product data
 
@@ -34,7 +47,7 @@ Complete redesign of FatRobin with a new navigation-based architecture while pre
 
 #### 2. Data Persistence
 - **Before**: No storage, manual re-entry every time
-- **After**: Local database storing products, recipes, and ingredients
+- **After**: Local database storing products, recipes, and ingredients, but not portions
 - **Search**: Find previously entered items
 - **Recent/Favorites**: Quick access to commonly used items
 
@@ -42,14 +55,14 @@ Complete redesign of FatRobin with a new navigation-based architecture while pre
 
 ### Product Data Fields
 When saving a product, user must provide:
-- **Name** (mandatory)
-- **Brand** (optional)
-- **Variant/Flavor** (optional)
+- **Name/Type** (mandatory) e.g. Potato Chips
+- **Brand** (optional) e.g. Pringles
+- **Variant/Flavor** (optional) e.g. Classic
 - **Fat per 100g** (mandatory)
-- **Package weight** (optional)
-- **Sub-divisions** (optional)
-- **Food item weight** (optional)
-- **Food item count** (optional)
+- **Package weight** (mandatory)
+- **Sub-divisions** (mandatory, default to 1)
+- **Food item weight** (optional) -- this makes no sense for e.g. pudding
+- **Food item count** (optional) -- this makes no sense for e.g. pudding
 
 ### Field Relationships
 - Auto-calculation between package weight, food item weight, and food item count maintained
@@ -57,11 +70,17 @@ When saving a product, user must provide:
 
 ## Data Verification Dialog
 
+### Shown for
+- Products
+- Ingredients with package weight
+- Recipies including either of the above
+
 ### When Triggered
-- Upon selecting a search result (products/recipes only)
+- Upon selecting a search result
 - Upon scanning and finding a barcode match
-- Any time a stored product/recipe is loaded
-- **Frequency limit**: Maximum once per 30 days per product, and only once per session across all products
+- Any time a stored item is loaded
+- When shown for recipies, show it for the "triggering" ingredient
+- **Frequency limit**: When entry's last-verified-timestamp is older than 90 days and dialog has not been shown in the same session.
 
 ### Dialog Content
 - **Warning message**: "Please verify the loaded information as the producer might have changed composition or package size"
@@ -69,7 +88,7 @@ When saving a product, user must provide:
 - **Actions**: 
   - "Use as-is" button
   - "Edit before using" button
-  - "Don't show again for 90 days" checkbox
+  - "Don't show this message again" checkbox
 
 ### Behavior
 - Modal dialog blocks progression until user acknowledges
@@ -95,28 +114,27 @@ When saving a product, user must provide:
 
 ### Search Screen Features
 - **Full fuzzy search**: Search entire dataset without pagination (Compose LazyColumn handles performance)
-- **Filter tabs**: All, Products, Recipes, Ingredients
-- **Search actions**: Edit, Use (navigate to portion/recipe mode), Mark as Favorite
+- **Filter chips**: Products, Recipes, Ingredients (can be (de-)activated individually) + "All" button that resets the chips
+- **Search actions**: Edit via long-press, Use via tap (navigate to portion/recipe mode), Mark as Favorite (via tap on hollow/filled star shape at the beginning)
 - **Ingredient behavior**: Selecting an ingredient opens recipe creation with ingredient pre-added (weight left empty)
 
 ### Edit Capabilities
-- **Products/Recipes**: Dedicated edit interface (separate from creation modal) with brand/variant/barcode fields
+- **Products/Recipes**: Dedicated edit interface (separate from creation modal) with brand/variant/barcode fields.
+Visually closely aligned with the creation modal.
 - **Real-time saving**: Changes saved to database immediately
 - **Edit access**: Available from search results and portion mode
 
 ### Search Result Display
-- **Products**: Brand, Name (Variant), Fat%, completeness indicators
-- **Recipes**: Name, Portions: X, Total Weight, Fat%, completeness indicators  
+- **Products**: Brand, Name (Variant), Fat%, package weight
+- **Recipes**: Name, Portions: X, Fat%
 - **Ingredients**: Name, Fat%, "Add to Recipe" visual cue
 - **Compact layout**: Maximum information in minimal space
 
 ### Favorites Management
-- **Toggle favorite**: Simple star/heart icon on any item
+- **Toggle favorite**: Simple star icon on any item
 - **Favorites ordering**: User can manually reorder favorites list
 - **Favorites display**: Prominent section on main screen, orderable by drag-and-drop
-- **Unfavorite behavior**: When unchecked on main screen, item remains visible but visually marked as "pending removal" using existing Material 3 color scheme (e.g., onSurfaceVariant color, reduced alpha) with undo capability
-- **Persistence**: Changes persist only when navigating away from main screen or closing app
-- **Undo mechanism**: Tap on pending-removal item to restore favorite status before persistence
+- **Unfavorite behavior**: When unchecked on main screen, item moves to top of recent list, making it available for re-favoriting again
 
 ## Settings Screen Additions
 
@@ -128,8 +146,7 @@ When saving a product, user must provide:
   - Add/remove/edit pill strength values (default: 10,000 and 35,000 units)
   - Modify dosing factor (default: 2000 units per gram of fat)
 - **Data Verification**
-  - Toggle 30-day verification reminders
-  - Reset 90-day snooze preferences
+  - re-enable verification reminders
 - **Data Management**
   - Clear all data with confirmation
   - Reset favorites and recent items
